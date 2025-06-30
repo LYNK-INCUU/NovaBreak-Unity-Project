@@ -47,6 +47,7 @@ ExportedObj/
 *.mdb
 *.opendb
 *.VC.db
+*.exr
 
 # Unity3D generated meta files
 *.pidb.meta
@@ -72,3 +73,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+Assets/Chara/\!\! Blair 2.0/Ani and Menu.7z
+Assets/Chara/\!\! Blair 2.0/Ani and Menu.7z.meta
+Assets/Chara/\!\! Blair 2.0/Mat & Textures.7z

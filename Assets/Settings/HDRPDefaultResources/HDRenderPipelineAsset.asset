@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
   m_RenderPipelineSettings:
-    supportShadowMask: 1
-    supportSSR: 0
-    supportSSRTransparent: 0
+    supportShadowMask: 0
+    supportSSR: 1
+    supportSSRTransparent: 1
     supportSSAO: 1
-    supportSSGI: 0
+    supportSSGI: 1
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -28,12 +28,12 @@ MonoBehaviour:
       m_SchemaId:
         m_Id: With3Levels
     supportVolumetrics: 1
-    supportVolumetricClouds: 0
-    supportLightLayers: 0
-    renderingLayerMaskBuffer: 0
+    supportVolumetricClouds: 1
+    supportLightLayers: 1
+    renderingLayerMaskBuffer: 1
     supportWater: 0
     waterSimulationResolution: 128
-    supportWaterExclusion: 0
+    supportWaterExclusion: 1
     supportWaterDecals: 1
     waterDecalAtlasSize: 1024
     maximumWaterDecalCount: 48
@@ -50,30 +50,30 @@ MonoBehaviour:
     supportTransparentDepthPostpass: 1
     colorBufferFormat: 74
     supportCustomPass: 1
-    customBufferFormat: 12
+    customBufferFormat: 8
     supportedLitShaderMode: 2
     planarReflectionResolution:
       m_Values: 000100000004000000080000
       m_SchemaId:
         m_Id: With3Levels
     cubeReflectionResolution:
-      m_Values: 000100000002000000040000
+      m_Values: 800000000001000000020000
       m_SchemaId:
         m_Id: With3Levels
     supportDecals: 1
     supportDecalLayers: 0
-    supportSurfaceGradient: 0
+    supportSurfaceGradient: 1
     decalNormalBufferHP: 0
-    supportHighQualityLineRendering: 0
-    highQualityLineRenderingMemoryBudget: 128
+    supportHighQualityLineRendering: 1
+    highQualityLineRenderingMemoryBudget: 512
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportScreenSpaceLensFlare: 1
     supportDataDrivenLensFlare: 1
-    supportDitheringCrossFade: 1
+    supportDitheringCrossFade: 0
     supportRuntimeAOVAPI: 0
     supportTerrainHole: 0
-    lightProbeSystem: 0
+    lightProbeSystem: 1
     oldLightProbeSystem: 0
     probeVolumeMemoryBudget: 1024
     supportProbeVolumeGPUStreaming: 0
@@ -82,21 +82,21 @@ MonoBehaviour:
     supportProbeVolumeScenarios: 0
     supportProbeVolumeScenarioBlending: 1
     probeVolumeBlendingMemoryBudget: 128
-    supportRayTracing: 0
-    supportVFXRayTracing: 0
+    supportRayTracing: 1
+    supportVFXRayTracing: 1
     supportedRayTracingMode: 3
     lightLoopSettings:
       cookieAtlasSize: 2048
       cookieFormat: 74
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 1
-      planarReflectionAtlasSize: 1024
-      reflectionProbeCacheSize: 64
-      reflectionCubemapSize: 256
-      maxEnvLightsOnScreen: 64
+      planarReflectionAtlasSize: 0
+      reflectionProbeCacheSize: 0
+      reflectionCubemapSize: 0
+      maxEnvLightsOnScreen: 0
       reflectionCacheCompressed: 0
       reflectionProbeFormat: 74
-      reflectionProbeTexCacheSize: 1073750016
+      reflectionProbeTexCacheSize: 4096
       reflectionProbeTexLastValidCubeMip: 3
       reflectionProbeTexLastValidPlanarMip: 0
       reflectionProbeDecreaseResToFit: 1
@@ -108,12 +108,12 @@ MonoBehaviour:
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 512
       maxAreaLightsOnScreen: 64
-      maxCubeReflectionOnScreen: 48
-      maxPlanarReflectionOnScreen: 16
-      maxDecalsOnScreen: 512
+      maxCubeReflectionOnScreen: 32
+      maxPlanarReflectionOnScreen: 8
+      maxDecalsOnScreen: 2048
       maxLightsPerClusterCell: 8
-      maxLocalVolumetricFogSize: 32
-      maxLocalVolumetricFogOnScreen: 64
+      maxLocalVolumetricFogSize: 0
+      maxLocalVolumetricFogOnScreen: 256
     hdShadowInitParams:
       maxShadowRequests: 128
       directionalShadowsDepthBits: 32
@@ -146,7 +146,7 @@ MonoBehaviour:
       maxDirectionalShadowMapResolution: 2048
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
-      supportScreenSpaceShadows: 0
+      supportScreenSpaceShadows: 1
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
     decalSettings:
@@ -171,8 +171,8 @@ MonoBehaviour:
       TAAUInjectionPoint: 0
       STPInjectionPoint: 0
       defaultInjectionPoint: 2
-      DLSSUseOptimalSettings: 0
-      DLSSSharpness: 0
+      DLSSUseOptimalSettings: 1
+      DLSSSharpness: 0.5
       FSR2EnableSharpness: 0
       FSR2Sharpness: 0
       FSR2UseOptimalSettings: 0
@@ -199,7 +199,7 @@ MonoBehaviour:
       singlePass: 1
       occlusionMesh: 1
       cameraJitter: 0
-      allowMotionBlur: 0
+      allowMotionBlur: 1
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
       NearBlurMaxRadius:
@@ -275,9 +275,9 @@ MonoBehaviour:
       RTGIDenoise: 010101
       RTGIHalfResDenoise: 010000
       RTGIDenoiserRadius:
-      - 0.75
-      - 0.5
-      - 0.25
+      - 1
+      - 1
+      - 1
       RTGISecondDenoise: 010101
       RTRMinSmoothness:
       - 0.6
@@ -312,9 +312,9 @@ MonoBehaviour:
       - 0.666
       - 0.5
     gpuResidentDrawerSettings:
-      mode: 0
-      smallMeshScreenPercentage: 0
-      enableOcclusionCullingInCameras: 0
+      mode: 1
+      smallMeshScreenPercentage: 0.15
+      enableOcclusionCullingInCameras: 1
       useDepthPrepassForOccluders: 1
     m_ObsoleteLightLayerName0: 
     m_ObsoleteLightLayerName1: 

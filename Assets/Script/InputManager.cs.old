@@ -1,0 +1,48 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class InputManager : MonoBehaviour
+{
+    private PlayerInput playerInput;
+    public PlayerInput.PlayerActions player;
+
+    private PlayerMotor motor;
+    private PlayerLook look;
+
+    void Awake()
+    {
+        playerInput = new PlayerInput();
+        player = playerInput.Player;
+
+        motor = GetComponent<PlayerMotor>();
+        look = GetComponent<PlayerLook>();           
+                               
+        player.Jump.performed += ctx => motor.Jump();
+
+        player.Crouch.performed += ctx => motor.Crouch();
+        player.Sprint.performed += ctx => motor.Sprint();
+        
+        
+    }
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        // tell the motor to process the move using the value of the movement action
+        motor.ProcessMove(player.Move.ReadValue<Vector2>());
+    }
+    private void LateUpdate()
+    {
+        // tell the look to process the look using the value of the look action
+        look.ProcessLook(player.Look.ReadValue<Vector2>());
+    }
+    private void OnEnable()
+    {
+        player.Enable();
+    }
+    private void OnDisable()
+    {
+        player.Disable();
+    }
+}
