@@ -59,7 +59,7 @@ namespace cowsins
 
         private bool isVisible = true;
 
-        public bool IsVisible => isVisible;
+        public bool IsHidden { get { return isVisible; } }
 
         #endregion
 
@@ -78,9 +78,8 @@ namespace cowsins
         private void Update()
         {
             // If we are shooting do not continue
-            if (InputManager.shooting && player.weaponController != null && player.weaponController.CanShoot) return;
-
-            if (spread != defaultSpread) spread = Mathf.Lerp(spread, defaultSpread, resizeSpeed * Time.deltaTime / 10); // if this is not the current spread, fall back to the original one
+            if (InputManager.shooting && player.weaponController != null && player.weaponController.canShoot)
+                if (spread != defaultSpread) spread = Mathf.Lerp(spread, defaultSpread, resizeSpeed * Time.deltaTime / 10); // if this is not the current spread, fall back to the original one
 
             // Manage different sizes
             if (player.grounded)

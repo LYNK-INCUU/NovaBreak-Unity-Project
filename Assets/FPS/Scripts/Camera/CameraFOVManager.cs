@@ -10,8 +10,6 @@ namespace cowsins
         private Camera cam;
         private PlayerMovement movement;
         private WeaponController weapon;
-        private float targetFOV;
-        private float lerpSpeed; 
 
         private void Start()
         {
@@ -20,39 +18,30 @@ namespace cowsins
             weapon = player.GetComponent<WeaponController>();
 
             baseFOV = movement.normalFOV; // Initialize baseFOV once in Start
-            targetFOV = baseFOV; 
         }
 
         private void Update()
         {
+            if (weapon.isAiming && weapon.weapon != null)
+                return; // Not applicable if aiming
+
+            float targetFOV;
+
+            if (movement.wallRunning && movement.canWallRun)
+            {
+                targetFOV = movement.wallrunningFOV;
+            }
+            else if (movement.currentSpeed > movement.walkSpeed && player.linearVelocity.magnitude > 0.2f)
+            {
+                targetFOV = movement.runningFOV;
+            }
+            else
+            {
+                targetFOV = baseFOV;
+            }
+
             // Smoothly interpolate FOV towards the target value
-            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOV, Time.deltaTime * lerpSpeed);
-        }
-        private bool AllowChangeFOV()
-        {
-            return weapon.isAiming && weapon.weapon != null;
-        }
-
-        public void SetFOV(float fov, float speed)
-        {
-            if (AllowChangeFOV())
-                return; // Not applicable if aiming
-            targetFOV = fov;
-            lerpSpeed = speed;  
-        }
-
-        public void SetFOV(float fov)
-        {
-            if (AllowChangeFOV())
-                return; // Not applicable if aiming
-            targetFOV = fov;
-            lerpSpeed = movement.fadeInFOVAmount; 
-        }
-
-        public void ForceAddFOV(float fov)
-        {
-            cam.fieldOfView -= fov;
-            lerpSpeed = movement.fadeInFOVAmount;
+            cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOV, Time.deltaTime * movement.fadeInFOVAmount);
         }
     }
 }

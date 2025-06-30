@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace cowsins
 {
     public class WeaponShootingState : WeaponBaseState
@@ -21,6 +19,7 @@ namespace cowsins
         {
             if (controller.weapon == null) return;
             CheckSwitchState();
+
         }
 
         public override void FixedUpdateState()

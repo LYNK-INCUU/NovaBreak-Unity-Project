@@ -141,16 +141,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c09d209777ddda84a9129c8745bfdd02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: 0142d5c7-a5b2-4bb5-9fee-0be786deec3e
-  events:
-    onEnter:
-      m_PersistentCalls:
-        m_Calls: []
-    onStay:
-      m_PersistentCalls:
-        m_Calls: []
-    onExit:
-      m_PersistentCalls:
-        m_Calls: []
-  rememberTriggerState: 0
   damage: 25

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using System;
 using TMPro;
 namespace cowsins
@@ -9,26 +10,16 @@ namespace cowsins
     /// </summary>
     public class InputManager : MonoBehaviour
     {
-        #region events
-        public static Action onInventoryOpenPressed, onInventoryFavOpenPressed;
-        public static Action onDrop, onJump, onDash, onInspect, onMelee, onShoot, onStopShoot, onTogglePause, onToggleFlashlight, onStartGrapple, onStopGrapple, onBackUI;
-
-        public static event Action rebindComplete;
-        public static event Action rebindCanceled;
-        public static event Action<InputAction, int> rebindStarted;
-        #endregion
-
         #region variables
         // Inputs
         public static bool shooting = false,
-            shootingDown,
             reloading,
             aiming,
             jumping,
             sprinting,
             crouching,
+            crouchingDown,
             interacting,
-            startInteraction,
             dropping,
             nextweapon,
             previousweapon,
@@ -39,13 +30,8 @@ namespace cowsins
             invertedAxis,
             yMovementActioned,
             openInventory,
-            openFavMenu,
-            toggleFlashLight,
-            grappling,
-            backUI,
-            selectUI,
-            westButtonUI,
-            nortButtonUI;
+            toggleFlashLight, 
+            grappling;
 
         public static float x,
             y,
@@ -60,7 +46,7 @@ namespace cowsins
             controllerSensitivityY = 30f,
             aimingSensitivityMultiplier = .5f;
 
-        private bool ToggleAiming;
+        private bool ToggleCrouching, ToggleSprinting, ToggleAiming;
 
         public enum curDevice
         {
@@ -73,11 +59,12 @@ namespace cowsins
 
         private PlayerMovement player;
 
-        private WeaponController weaponController;
+        public static event Action rebindComplete;
+        public static event Action rebindCanceled;
+        public static event Action<InputAction, int> rebindStarted;
 
         private Vector2 moveInput;
 
-        private bool ToggleCrouching, ToggleSprinting;
         #endregion
 
         private void Awake()
@@ -85,6 +72,7 @@ namespace cowsins
             // Handle singleton
             if (inputManager == null)
             {
+                DontDestroyOnLoad(this);
                 inputManager = this;
             }
             else
@@ -93,8 +81,12 @@ namespace cowsins
                 return;
             }
 
+
             Init();
 
+        }
+        private void OnEnable()
+        {
             inputActions.GameControls.Crouching.started += ctx => ToggleCrouching = true;
             inputActions.GameControls.Crouching.canceled += ctx => ToggleCrouching = false;
 
@@ -104,52 +96,13 @@ namespace cowsins
             inputActions.GameControls.Aiming.started += ctx => ToggleAiming = true;
             inputActions.GameControls.Aiming.canceled += ctx => ToggleAiming = false;
 
-            inputActions.GameControls.Pause.started += ctx => onTogglePause?.Invoke();
+            inputActions.GameControls.Pause.started += ctx => TogglePause();
 
-            inputActions.GameControls.InventoryOpen.performed += ctx => onInventoryOpenPressed?.Invoke();
-            inputActions.GameControls.InventoryFavOpen.performed += ctx => onInventoryFavOpenPressed?.Invoke();
-
-            inputActions.GameControls.Drop.started += ctx => onDrop?.Invoke();
-            inputActions.GameControls.Jumping.started += ctx => onJump?.Invoke();
-            inputActions.GameControls.Dashing.started += ctx => onDash?.Invoke();
-            inputActions.GameControls.Inspect.started += ctx => onInspect?.Invoke();
-            inputActions.GameControls.Melee.started += ctx => onMelee?.Invoke();
-            inputActions.GameControls.ToggleFlashLight.started += ctx => onToggleFlashlight?.Invoke();
-            inputActions.GameControls.Grapple.started += ctx => onStartGrapple?.Invoke();
-            inputActions.GameControls.Grapple.canceled += ctx => onStopGrapple?.Invoke();
-            
-            inputActions.UI.Back.started += ctx => onBackUI?.Invoke();
-
-            inputActions.GameControls.Firing.started += ctx => {
-                shooting = true;    
-                onShoot?.Invoke();
-            };
-            inputActions.GameControls.Firing.canceled += ctx =>
-            {
-                shooting = false;
-                onStopShoot?.Invoke();
-            };
+            SceneManager.activeSceneChanged += OnSceneChange;
         }
 
         private void OnDisable()
         {
-            inputActions.GameControls.Drop.started -= ctx => onDrop?.Invoke();
-            inputActions.GameControls.Jumping.started -= ctx => onJump?.Invoke();
-            inputActions.GameControls.Dashing.started -= ctx => onDash?.Invoke();
-            inputActions.GameControls.Inspect.started -= ctx => onInspect?.Invoke();
-            inputActions.GameControls.Melee.started -= ctx => onMelee?.Invoke();
-            inputActions.GameControls.Firing.started -= ctx => onShoot?.Invoke();
-            inputActions.GameControls.Firing.canceled -= ctx => onStopShoot?.Invoke();
-            inputActions.GameControls.ToggleFlashLight.started -= ctx => onToggleFlashlight?.Invoke();
-
-            onDrop = null;
-            onJump = null;
-            onDash = null;
-            onInspect = null;
-            onMelee = null; 
-            onShoot = null; 
-            onStopShoot = null; 
-
             inputActions.Disable();
         }
         private void Update()
@@ -192,37 +145,9 @@ namespace cowsins
 
             yMovementActioned = y > 0;
 
-            shootingDown = inputActions.GameControls.Firing.WasPressedThisFrame();
             reloading = inputActions.GameControls.Reloading.IsPressed();
             melee = inputActions.GameControls.Melee.WasPressedThisFrame();
 
-            scrolling = inputActions.GameControls.Scrolling.ReadValue<Vector2>().y;
-            nextweapon = inputActions.GameControls.ChangeWeapons.WasPressedThisFrame() && inputActions.GameControls.ChangeWeapons.ReadValue<float>() > 0;
-            previousweapon = inputActions.GameControls.ChangeWeapons.WasPressedThisFrame() && inputActions.GameControls.ChangeWeapons.ReadValue<float>() < 0;
-
-            if (weaponController.alternateAiming && weaponController.weapon != null)
-            {
-                if (ToggleAiming) { aiming = !aiming; ToggleAiming = false; }
-            }
-            else
-            {
-                aiming = inputActions.GameControls.Aiming.IsPressed();
-            }
-
-            interacting = inputActions.GameControls.Interacting.IsPressed();
-            startInteraction = inputActions.GameControls.Interacting.WasPressedThisFrame();
-            openInventory = inputActions.GameControls.InventoryOpen.WasPressedThisFrame();
-            openFavMenu = inputActions.GameControls.InventoryFavOpen.WasPressedThisFrame();
-            dropping = inputActions.GameControls.Drop.WasPressedThisFrame();
-
-            inspecting = inputActions.GameControls.Inspect.IsPressed();
-
-            toggleFlashLight = inputActions.GameControls.ToggleFlashLight.WasPressedThisFrame();
-
-            grappling = inputActions.GameControls.Grapple.IsPressed();
-
-            dashing = inputActions.GameControls.Dashing.WasPressedThisFrame();
-            jumping = inputActions.GameControls.Jumping.WasPressedThisFrame();
 
             // Handle different crouching methods
             if (player.alternateCrouch)
@@ -230,12 +155,14 @@ namespace cowsins
                 if (ToggleCrouching)
                 {
                     crouching = !crouching;
+                    crouchingDown = !crouchingDown;
                     ToggleCrouching = false;
                 }
             }
             else
             {
                 crouching = inputActions.GameControls.Crouching.IsPressed();
+                crouchingDown = inputActions.GameControls.Crouching.IsPressed();
             }
 
             if (player.alternateSprint)
@@ -249,11 +176,33 @@ namespace cowsins
             else
                 sprinting = inputActions.GameControls.Sprinting.IsPressed();
 
-            backUI = inputActions.UI.Back.WasPressedThisFrame();
-            selectUI = inputActions.UI.Select.WasPressedThisFrame();
-            westButtonUI = inputActions.UI.WestButton.WasPressedThisFrame();
-            nortButtonUI = inputActions.UI.NorthButton.WasPressedThisFrame();
-            pausing = inputActions.GameControls.Pause.WasPressedThisFrame();
+            shooting = inputActions.GameControls.Firing.IsPressed();
+
+            scrolling = inputActions.GameControls.Scrolling.ReadValue<Vector2>().y;
+            nextweapon = inputActions.GameControls.ChangeWeapons.WasPressedThisFrame() && inputActions.GameControls.ChangeWeapons.ReadValue<float>() > 0;
+            previousweapon = inputActions.GameControls.ChangeWeapons.WasPressedThisFrame() && inputActions.GameControls.ChangeWeapons.ReadValue<float>() < 0;
+
+            if (player != null && player.GetComponent<WeaponController>().alternateAiming && player.GetComponent<WeaponController>().weapon != null)
+            {
+                if (ToggleAiming) { aiming = !aiming; ToggleAiming = false; }
+            }
+            else
+            {
+                aiming = inputActions.GameControls.Aiming.IsPressed();
+            }
+
+            interacting = inputActions.GameControls.Interacting.IsPressed();
+            openInventory = inputActions.GameControls.InventoryOpen.WasPressedThisFrame();
+            dropping = inputActions.GameControls.Drop.IsPressed();
+
+            inspecting = inputActions.GameControls.Inspect.IsPressed();
+
+            toggleFlashLight = inputActions.GameControls.ToggleFlashLight.WasPressedThisFrame();
+
+            grappling = inputActions.GameControls.Grapple.IsPressed();
+
+            dashing = inputActions.GameControls.Dashing.WasPressedThisFrame();
+            jumping = inputActions.GameControls.Jumping.WasPressedThisFrame();
         }
 
         private void FixedUpdate()
@@ -263,16 +212,11 @@ namespace cowsins
 
         #region others
 
-        public static void ToggleGameControls(bool enable)
+        // Prevents glitchy inputs between scenes
+        private void OnSceneChange(Scene current, Scene next)
         {
-            if (enable) inputActions.GameControls.Enable();
-            else inputActions.GameControls.Disable();
-        }
-
-        public static void ToggleUIControls(bool enable)
-        {
-            if (enable) inputActions.UI.Enable();
-            else inputActions.UI.Disable();
+            inputActions.Disable();
+            inputActions.Enable();
         }
 
         private void Init()
@@ -282,9 +226,6 @@ namespace cowsins
             inputActions.Enable();
             // Load saved bindings overrides
             LoadAllBindings();
-
-            ToggleGameControls(true);
-            ToggleUIControls(false);
         }
 
         private void LoadAllBindings()
@@ -319,11 +260,7 @@ namespace cowsins
         /// Sets the player that the InputManager will take as a reference
         /// </summary>
         /// <param name="player"></param>
-        public void SetPlayer(PlayerMovement player)
-        {
-            this.player = player;
-            weaponController = player.GetComponent<WeaponController>();
-        }
+        public void SetPlayer(PlayerMovement player) => this.player = player;
 
         public static void StartRebind(string actionName, int bindingIndex, TextMeshProUGUI statusTxt, bool excludeMouse, GameObject rebindOverlay, TextMeshProUGUI rebindOverlayTitle)
         {
@@ -465,6 +402,12 @@ namespace cowsins
                 action.RemoveBindingOverride(bindingIndex);
 
             SaveBindingOverride(action);
+        }
+
+        private void TogglePause()
+        {
+            if (PauseMenu.Instance)
+                PauseMenu.Instance.TogglePause();
         }
         #endregion
     }

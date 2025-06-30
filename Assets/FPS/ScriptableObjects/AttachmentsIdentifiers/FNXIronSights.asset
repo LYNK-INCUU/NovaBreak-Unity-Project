@@ -12,11 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ed8e9adcfedb5d4085ce56cbdf53865, type: 3}
   m_Name: FNXIronSights
   m_EditorClassIdentifier: 
-  _name: FNX Iron Sights
-  icon: {fileID: 21300000, guid: 98a6577c6e51ce74b90a385219fd9efe, type: 3}
+  attachmentName: FNX IronSights
+  attachmentIcon: {fileID: 21300000, guid: 98a6577c6e51ce74b90a385219fd9efe, type: 3}
   pickUpGraphics: {fileID: 0}
-  maxStack: 1
-  itemSize: {x: 1, y: 1}
-  irregularItemIcon: {fileID: 0}
-  applyWeight: 0
-  weightMultiplier: 1

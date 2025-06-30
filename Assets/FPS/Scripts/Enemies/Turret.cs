@@ -4,26 +4,25 @@ namespace cowsins
 {
     public class Turret : MonoBehaviour
     {
-        [SerializeField, Title("References")] private bool displayGizmos = true;
+        [SerializeField, Header("References")] private bool displayGizmos = true;
         [SerializeField] private Animator animator;
         [SerializeField, Tooltip("The part of the turret that rotates.")] private Transform turretHead;
 
 
-        [SerializeField, Tooltip("Distance within the player is detectable. If displayGizmos is true this will be visible in the Editor."), Title("Basic Settings")] private float detectionRange = 10f;
+        [SerializeField, Tooltip("Distance within the player is detectable. If displayGizmos is true this will be visible in the Editor."), Header("Basic Settings")] private float detectionRange = 10f;
         [SerializeField, Tooltip("Enable vertical movement.")] private bool allowVerticalMovement = false;
         [SerializeField, Tooltip("Speed of rotation interpolation.")] private float lerpSpeed = 5f;
 
-        [SerializeField, Title("Projectile Settings")] private LayerMask wallLayer;
+
+        private bool canShoot = false;
+        [SerializeField, Header("Projectile Settings")] private LayerMask wallLayer;
         [SerializeField] private GameObject projectilePrefab;
         [SerializeField, Min(0)] private float projectileSpeed, projectileDamage, projectileDuration;
         [SerializeField] private Transform firePoint;
         [SerializeField] private GameObject muzzleFlash;
-        [SerializeField, Tooltip("Shots per second."), Title("Shooting")] private float fireRate = 2f;
-
-        [SerializeField, Title("Pool Settings")] private int projectilePoolSize;
-
-        private bool canShoot = false;
+        [SerializeField, Tooltip("Shots per second."), Header("Shooting")] private float fireRate = 2f;
         private float fireCooldown = 0f;
+
         private Transform player;
 
 
@@ -37,9 +36,6 @@ namespace cowsins
             {
                 Debug.LogError("No player found. Make sure to tag the player object with 'Player' tag.");
             }
-
-            PoolManager.Instance.RegisterPool(muzzleFlash, projectilePoolSize);
-            PoolManager.Instance.RegisterPool(projectilePrefab, projectilePoolSize);
         }
         Vector3 targetDirection;
         Quaternion targetRotation;
@@ -72,30 +68,24 @@ namespace cowsins
             }
         }
 
-        private void Fire()
+        void Fire()
         {
             // Only shoot if we are allowed to do it. 
             if (canShoot && fireCooldown <= 0)
             {
                 if (animator != null) animator.SetTrigger("Fire");
                 fireCooldown = fireRate;
-                TurretProjectile proj = PoolManager.Instance.GetFromPool(projectilePrefab, firePoint.position, Quaternion.identity).GetComponent<TurretProjectile>();
-                proj.destroyEvent.AddListener(ReturnProjectileToPool);
-                PoolManager.Instance.GetFromPool(muzzleFlash, firePoint.position, targetRotation);
+                TurretProjectile proj = Instantiate(projectilePrefab, firePoint.position, Quaternion.identity).GetComponent<TurretProjectile>();
+                Instantiate(muzzleFlash, firePoint.position, targetRotation);
                 proj.dir = targetDirection;
                 proj.damage = projectileDamage;
                 proj.speed = projectileSpeed;
-                proj.projectileDuration = projectileDuration;
+                Destroy(proj.gameObject, projectileDuration);
             }
         }
 
-        private void ReturnProjectileToPool(TurretProjectile projectile)
-        {
-            PoolManager.Instance?.ReturnToPool(projectile.gameObject, projectilePrefab);
-        }
-
         // Draw Gizmos
-        private void OnDrawGizmosSelected()
+        void OnDrawGizmosSelected()
         {
             if (!displayGizmos) return;
             Matrix4x4 oldMatrix = Gizmos.matrix;

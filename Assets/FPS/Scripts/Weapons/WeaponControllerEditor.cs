@@ -93,7 +93,7 @@ namespace cowsins
                         break;
                     case "Events":
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("events"));
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("customPrimaryShot"));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("customShot"));
                         break;
                 }
                 EditorGUILayout.Space(10f);

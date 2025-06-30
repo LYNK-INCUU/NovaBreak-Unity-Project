@@ -251,9 +251,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11c2f11a6129bee47ba38b912a4ceb6c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  image: {fileID: 5108973122284566535}
-  nullWeaponIndicator: {fileID: 21300000, guid: 5919d13f701c30f4eb269fe011ecc545, type: 3}
   id: 0
+  weapon: {fileID: 0}
+  image: {fileID: 5108973122284566535}
+  initScale: {x: 0, y: 0, z: 0}
+  nullWeapon: {fileID: 21300000, guid: 5919d13f701c30f4eb269fe011ecc545, type: 3}
 --- !u!225 &1200669643884834442
 CanvasGroup:
   m_ObjectHideFlags: 0

@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace cowsins
 {
@@ -7,13 +6,9 @@ namespace cowsins
     {
         [HideInInspector] public Vector3 dir;
 
-        [HideInInspector] public float damage, speed, projectileDuration;
+        [HideInInspector] public float damage, speed;
 
-        public UnityEvent<TurretProjectile> destroyEvent;
-
-        private void Start() => Invoke(nameof(DestroyTurretProjectile), projectileDuration);
-
-        private void Update()
+        void Update()
         {
             transform.Translate(dir * speed * Time.deltaTime);
         }
@@ -22,15 +17,15 @@ namespace cowsins
         {
             if (!other.CompareTag("Player"))
             {
-                DestroyTurretProjectile();
+                Destroy(this.gameObject);
                 return;
             }
 
             PlayerStats player = other.GetComponent<PlayerStats>();
             player.Damage(damage, false);
-            DestroyTurretProjectile();
-        }
+            Destroy(this.gameObject);
 
-        private void DestroyTurretProjectile() => destroyEvent?.Invoke(this);
+        }
     }
+
 }

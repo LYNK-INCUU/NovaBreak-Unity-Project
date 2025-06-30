@@ -1,11 +1,7 @@
 #if UNITY_EDITOR
-namespace cowsins
+public interface ITab
 {
-    public interface ITab
-    {
-        string TabName { get; }
-        void OnGUI();
-        void StartTab();
-    }
+    string TabName { get; }
+    void OnGUI();
 }
 #endif

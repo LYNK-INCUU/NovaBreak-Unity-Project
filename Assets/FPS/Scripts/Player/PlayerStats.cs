@@ -219,6 +219,7 @@ namespace cowsins
         }
 
         public bool controllable { get; private set; } = true;
+
         public static bool Controllable { get; private set; }
 
 

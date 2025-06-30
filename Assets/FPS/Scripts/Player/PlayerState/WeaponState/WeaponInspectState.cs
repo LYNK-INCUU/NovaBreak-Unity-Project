@@ -29,17 +29,18 @@ namespace cowsins
 
             if (!interact.realtimeAttachmentCustomization) return;
 
-            UIEvents.onStartInspection?.Invoke();
+            _ctx.inspectionUI.gameObject.SetActive(true);
+            _ctx.inspectionUI.alpha = 0;
+
             interact.GenerateInspectionUI();
 
-            UIController.instance.UnlockMouse();
-
-            InputManager.onInspect += SwitchToDefault;
+            UnlockMouse();
         }
 
 
         public override void UpdateState()
         {
+
             if (interact.realtimeAttachmentCustomization) stats.LoseControl();
 
             if (timer <= 1) timer += Time.deltaTime;
@@ -52,27 +53,31 @@ namespace cowsins
         public override void FixedUpdateState() { }
         public override void ExitState()
         {
+
             interact.inspecting = false;
             controller.DisableInspection();
             stats.CheckIfCanGrantControl();
 
-            UIController.instance.LockMouse();
+            LockMouse();
 
             UIEvents.onEnableAttachmentUI?.Invoke(null);
-            UIEvents.onStopInspection?.Invoke();
-
-            InputManager.onInspect -= SwitchToDefault;
         }
         public override void CheckSwitchState()
         {
             if (timer < 1) return;
-            if (InputManager.shooting && !interact.realtimeAttachmentCustomization || player.currentSpeed == player.runSpeed) SwitchState(_factory.Default());
+            if (InputManager.inspecting || InputManager.shooting && !interact.realtimeAttachmentCustomization || player.currentSpeed == player.runSpeed) SwitchState(_factory.Default());
         }
 
-        private void SwitchToDefault()
+        private void UnlockMouse()
         {
-            if (timer < 1) return;
-            SwitchState(_factory.Default());
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        private void LockMouse()
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 }

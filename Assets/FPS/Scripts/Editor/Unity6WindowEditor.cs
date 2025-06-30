@@ -90,9 +90,9 @@ namespace cowsins
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
             GUILayout.BeginHorizontal();
 
-            DrawTutorialButton(urpImage, "https://rumble.com/v6pfqjx-how-to-import-fps-engine-in-unity-6-urp-unity-tutorial.html?e9s=src_v1_upp");
-            DrawTutorialButton(builtInImage, "https://rumble.com/v6pfq7f-how-to-import-fps-engine-in-unity-6-built-in-render-pipeline-.html?e9s=src_v1_upp");
-            DrawTutorialButton(hdrpImage, "https://rumble.com/v6pfqcu-how-to-import-fps-engine-in-unity-6-hdrp-unity-tutorial.html?e9s=src_v1_upp");
+            DrawTutorialButton(urpImage, "https://youtu.be/PyAywKlqKrY");
+            DrawTutorialButton(builtInImage, "https://youtu.be/aXW34tlzNGE");
+            DrawTutorialButton(hdrpImage, "https://youtu.be/kyJFwmcs-6Q");
 
             GUILayout.EndHorizontal();
             GUILayout.EndScrollView();

@@ -4,12 +4,9 @@
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-#if SAVE_LOAD_ADD_ON
-using cowsins.SaveLoad;
-using System.Collections.Generic;
-#endif
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using UnityEngine.Events;
 
 namespace cowsins
@@ -18,7 +15,7 @@ namespace cowsins
     /// Super simple enemy script that allows any object with this component attached to receive damage,aim towards the player and shoot at it.
     /// This is not definitive and it will 100% be modified and re structured in future updates
     /// </summary>
-    public class EnemyHealth : Identifiable, IDamageable
+    public class EnemyHealth : MonoBehaviour, IDamageable
     {
         [System.Serializable]
         public class Events
@@ -29,9 +26,9 @@ namespace cowsins
         [Tooltip("Name of the enemy. This will appear on the killfeed"), SerializeField]
         protected string _name;
 
-        [ReadOnly, SaveField] public float health;
+        [ReadOnly] public float health;
 
-        [ReadOnly, SaveField] public float shield;
+        [ReadOnly] public float shield;
 
         [Tooltip("initial enemy health "), SerializeField]
         protected float maxHealth;
@@ -54,20 +51,30 @@ namespace cowsins
         [Tooltip("If true, it will display the KillFeed UI."), SerializeField]
         protected bool showKillFeed;
 
+        [Tooltip("Add a pop up showing the damage that has been dealt. Recommendation: use the already made pop up included in this package. "), SerializeField]
+        private GameObject damagePopUp;
+
+        [Tooltip("Horizontal randomness variation"), SerializeField]
+        private float xVariation;
+
         [SerializeField]
         protected AudioClip dieSFX;
+
+        [HideInInspector] protected Transform player;
 
         public Events events;
 
         protected bool isDead;
 
-        public bool DestroyOnDie => destroyOnDie;
+        public bool DestroyOnDie { get { return destroyOnDie; } }
 
-        public bool ShowUI => showUI;
+        public bool ShowUI { get { return showUI; } }
 
-        public Slider HealthSlider => healthSlider;
+        public Slider HealthSlider { get { return healthSlider; } }
 
-        public Slider ShieldSlider => shieldSlider;
+        public Slider ShieldSlider { get { return shieldSlider; } }
+
+        public GameObject DamagePopUp { get { return damagePopUp; } }
 
         public virtual void Start()
         {
@@ -77,6 +84,10 @@ namespace cowsins
 
             // Spawn
             events.OnSpawn.Invoke();
+
+            // Initial settings 
+            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
 
             // UI 
             // Determine max values
@@ -117,11 +128,16 @@ namespace cowsins
             // Custom event on damaged
             events.OnDamaged.Invoke();
             UIEvents.onEnemyHit?.Invoke(isHeadshot);
-            if(showDamagePopUps) UIEvents.showDamagePopUp?.Invoke(transform.position, oldDmg);
-#if SAVE_LOAD_ADD_ON
-            StoreData();
-#endif
             if (health <= 0 && !isDead) Die();
+            // If you do not want to show a damage pop up, stop, do not continue
+            if (!showDamagePopUps) return;
+            GameObject popup = Instantiate(damagePopUp, transform.position, Quaternion.identity) as GameObject;
+            if (oldDmg / Mathf.FloorToInt(oldDmg) == 1)
+                popup.transform.GetChild(0).GetComponent<TMP_Text>().text = oldDmg.ToString("F0");
+            else
+                popup.transform.GetChild(0).GetComponent<TMP_Text>().text = oldDmg.ToString("F1");
+            float xRand = Random.Range(-xVariation, xVariation);
+            popup.transform.position = popup.transform.position + new Vector3(xRand, 0, 0);
         }
         public virtual void Die()
         {
@@ -139,25 +155,10 @@ namespace cowsins
             if (destroyOnDie) Destroy(this.gameObject);
         }
 
-#if SAVE_LOAD_ADD_ON
-        // If dead, destroy the Enemy.
-        public override void LoadedState()
+        public void PlayAnimation(string triggerIdentifier)
         {
-            if (health <= 0 && destroyOnDie) Destroy(this.gameObject);
+            GetComponentInChildren<Animator>()?.SetTrigger(triggerIdentifier);
         }
-
-        // Store the enemy into the enemy health data
-        public override void StoreData()
-        {
-            if (GameDataManager.instance == null) return;
-
-            if (GameDataManager.instance.enemyHealthData == null)
-            {
-                GameDataManager.instance.enemyHealthData = new Dictionary<string, CustomSaveData>();
-            }
-            GameDataManager.instance.enemyHealthData[UniqueIDValue] = SaveFields();
-        }
-#endif
     }
 #if UNITY_EDITOR
     [System.Serializable]
@@ -166,7 +167,7 @@ namespace cowsins
     {
         private bool showIdentity = false;
         private bool showStats = false;
-        private bool showUIFoldout = false;
+        private bool showUI = false;
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -222,8 +223,8 @@ namespace cowsins
             EditorGUILayout.Space(6);
             EditorGUILayout.BeginVertical(GUI.skin.GetStyle("HelpBox"));
             {
-                showUIFoldout = EditorGUILayout.Foldout(showUIFoldout, "UI", true);
-                if (showUIFoldout)
+                showUI = EditorGUILayout.Foldout(showUI, "UI", true);
+                if (showUI)
                 {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("showUI"));
@@ -247,6 +248,25 @@ namespace cowsins
                     }
 
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("showDamagePopUps"));
+                    if (myScript.showDamagePopUps)
+                    {
+                        EditorGUI.indentLevel++;
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("damagePopUp"));
+                        if (!myScript.DamagePopUp)
+                        {
+                            EditorGUILayout.Space(10);
+                            EditorGUILayout.HelpBox("Damage Pop Up is null. Do you want to automatically assign the default Prefab?", MessageType.Error);
+                            EditorGUILayout.Space(5);
+                            if (GUILayout.Button("Assign Default Damage Pop Up"))
+                            {
+                                AssignDefaultDamagePopUp();
+                            }
+                            EditorGUILayout.Space(10);
+                        }
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("xVariation"));
+                        EditorGUI.indentLevel--;
+                    }
+
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("showKillFeed"));
                     EditorGUILayout.Space(6);
                     EditorGUI.indentLevel--;
@@ -291,10 +311,33 @@ namespace cowsins
             }
             else
             {
-                Debug.LogError("<color=red>[COWSINS]</color> Prefab at path <b><color=cyan>{prefabPath}</color></b> " +
-                               "could not be found. Did you move, rename or delete EnemyStatusSlider.prefab?");
+                Debug.LogError($"Prefab not found at path: { prefabPath }. Did you move, rename or delete EnemyStatusSlider.prefab? ");
             }
         }
+
+        private void AssignDefaultDamagePopUp()
+        {
+            // Path to DMGPopUp prefab
+            string prefabPath = "Assets/Cowsins/Prefabs/Others/UI/DMGPopUp.prefab";
+
+            // Load prefab
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab != null)
+            {
+                SerializedProperty damagePopUpProperty = serializedObject.FindProperty("damagePopUp");
+
+                // Assign the prefab to the property
+                damagePopUpProperty.objectReferenceValue = prefab;
+                serializedObject.ApplyModifiedProperties();
+                // Ensure changes are saved
+                EditorUtility.SetDirty(target);
+            }
+            else
+            {
+                Debug.LogError($"Prefab at path {prefabPath} could not be found. Did you move, rename or delete DMPopUp.prefab? ");
+            }
+        }
+
     }
 #endif
 }

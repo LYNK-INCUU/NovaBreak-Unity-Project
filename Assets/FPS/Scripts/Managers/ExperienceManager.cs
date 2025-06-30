@@ -12,7 +12,7 @@ namespace cowsins
 
         private float totalExperience;
 
-        public float TotalExperience => totalExperience;
+        public float TotalExperience { get { return totalExperience; } }
 
         private void OnEnable()
         {
@@ -39,8 +39,6 @@ namespace cowsins
             // Check if the player has leveled down.
             CheckForLevelDown();
         }
-
-        public void ResetExperience() => totalExperience = 0;
 
         // check if the player has leveled up.
         private void CheckForLevelUp()

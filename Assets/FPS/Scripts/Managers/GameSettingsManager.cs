@@ -152,12 +152,13 @@ namespace cowsins
         private void PopulateResolutionDropdown()
         {
             resolutionRateDropdown.ClearOptions();
+            availableResolutions = Screen.resolutions;
 
             List<string> options = new List<string>();
             for (int i = 0; i < availableResolutions.Length; i++)
             {
                 Resolution res = availableResolutions[i];
-                options.Add($"{res.width} x {res.height} @ {Mathf.Round(res.refreshRate)}Hz");
+                options.Add($"{res.width} x {res.height} @ {res.refreshRate}Hz");
             }
 
             resolutionRateDropdown.AddOptions(options);
@@ -198,6 +199,7 @@ namespace cowsins
 
         private void OnSceneChanged(Scene current, Scene next)
         {
+            availableResolutions = Screen.resolutions;
             PlayerPrefs.Save();
         }
 

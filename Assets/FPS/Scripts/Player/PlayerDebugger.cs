@@ -4,11 +4,8 @@ namespace cowsins
 {
     public class PlayerDebugger : MonoBehaviour
     {
-        private const float TopMargin = 130f;
-        private const float BoxWidth = 320f;
-        private const float LabelHeight = 20f;
+        private readonly float topMargin = 130f;
 
-        // Player Components
         private PlayerStats playerStats;
         private PlayerStates playerStates;
         private PlayerMovement playerMovement;
@@ -17,7 +14,6 @@ namespace cowsins
         private InteractManager interactManager;
         private Rigidbody rb;
 
-        // Get references
         private void Start()
         {
             playerStats = GetComponent<PlayerStats>();
@@ -29,70 +25,55 @@ namespace cowsins
             rb = GetComponent<Rigidbody>();
         }
 
-        private void DrawLabel(Rect position, string label)
-        {
-            GUI.Label(position, label);
-        }
-
-        private void DrawBox(Rect position, string title, System.Action drawContent)
-        {
-            GUI.Box(position, title);
-            drawContent();
-        }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if UNITY_EDITOR || DEVELOPMENT_BUILDw
         void OnGUI()
         {
-            // Player Information Box
-            DrawBox(new Rect(10, TopMargin, BoxWidth, 110), "Player Information", () =>
-            {
-                DrawLabel(new Rect(20, TopMargin + 20, BoxWidth - 20, LabelHeight), $"Player Velocity: {Mathf.Round(rb.linearVelocity.magnitude)}");
-                DrawLabel(new Rect(20, TopMargin + 40, BoxWidth - 20, LabelHeight), $"Player Position: {transform.position}");
-                DrawLabel(new Rect(20, TopMargin + 60, BoxWidth - 20, LabelHeight), $"Player Orientation: {playerMovement.orientation.forward}");
-                DrawLabel(new Rect(20, TopMargin + 80, BoxWidth - 20, LabelHeight), $"Player State: {playerStates.CurrentState}");
-            });
+            // Define the background box dimensions
+            float boxWidth = 320f;
 
-            // Weapon Information Box
-            DrawBox(new Rect(10, TopMargin + 120, BoxWidth, 170), "Weapon Information", () =>
-            {
-                DrawLabel(new Rect(20, TopMargin + 140, BoxWidth - 20, LabelHeight), $"Weapon_SO: {weaponController.weapon}");
-                DrawLabel(new Rect(20, TopMargin + 160, BoxWidth - 20, LabelHeight), $"Weapon Object: {weaponController.id}");
-                DrawLabel(new Rect(20, TopMargin + 180, BoxWidth - 20, LabelHeight), $"Weapon Total Bullets: {weaponController.id?.totalBullets}");
-                DrawLabel(new Rect(20, TopMargin + 200, BoxWidth - 20, LabelHeight), $"Weapon Current Bullets: {weaponController.id?.bulletsLeftInMagazine}");
-                DrawLabel(new Rect(20, TopMargin + 220, BoxWidth - 20, LabelHeight), $"Reloading: {weaponController.Reloading}");
-                DrawLabel(new Rect(20, TopMargin + 240, BoxWidth - 20, LabelHeight), $"Weapon State: {weaponStates.CurrentState}");
-                DrawLabel(new Rect(20, TopMargin + 260, BoxWidth - 20, LabelHeight), $"Weapon Aiming: {weaponController.isAiming}");
-            });
+            // Draw the background box
+            GUI.Box(new Rect(10, topMargin, boxWidth, 110), "Player Information");
 
-            // Player Stats Information Box
-            DrawBox(new Rect(10, TopMargin + 300, BoxWidth, 70), "Player Stats Information", () =>
-            {
-                DrawLabel(new Rect(20, TopMargin + 320, BoxWidth - 20, LabelHeight), $"Health: {Mathf.Round(playerStats.health)} / {playerStats.MaxHealth}");
-                DrawLabel(new Rect(20, TopMargin + 340, BoxWidth - 20, LabelHeight), $"Shield: {Mathf.Round(playerStats.shield)} / {playerStats.MaxShield}");
-                DrawLabel(new Rect(20, TopMargin + 360, BoxWidth - 20, LabelHeight), $"Controllable: {playerStats.controllable}");
-            });
+            GUI.Label(new Rect(20, topMargin + 20, boxWidth - 20, 20), "Player Velocity: " + Mathf.Round(rb.linearVelocity.magnitude));
 
-            // Interact Manager Information Box
-            DrawBox(new Rect(10, TopMargin + 400, BoxWidth, 70), "Interact Manager Information", () =>
-            {
-                DrawLabel(new Rect(20, TopMargin + 420, BoxWidth - 20, LabelHeight), $"Highlighted Interactable: {interactManager.HighlightedInteractable?.name}");
-                DrawLabel(new Rect(20, TopMargin + 440, BoxWidth - 20, LabelHeight), $"Interact Progress: {interactManager.progressElapsed:F1}");
-            });
+            GUI.Label(new Rect(20, topMargin + 40, boxWidth - 20, 20), "Player Position: " + transform.position);
 
-            // Input Manager Box
-            DrawBox(new Rect(10, TopMargin + 480, BoxWidth, 300), "Input Manager", () =>
-            {
-                DrawLabel(new Rect(20, TopMargin + 500, BoxWidth - 20, LabelHeight), $"Movement: ({InputManager.x:F1},{InputManager.y:F1})");
-                DrawLabel(new Rect(20, TopMargin + 520, BoxWidth - 20, LabelHeight), $"Look: ({InputManager.mousex:F1},{InputManager.mousey:F1})");
-                DrawLabel(new Rect(20, TopMargin + 540, BoxWidth - 20, LabelHeight), $"Gamepad Look: ({InputManager.controllerx:F1},{InputManager.controllery:F1})");
-                DrawLabel(new Rect(20, TopMargin + 560, BoxWidth - 20, LabelHeight), $"Shooting: {InputManager.shooting}");
-                DrawLabel(new Rect(20, TopMargin + 580, BoxWidth - 20, LabelHeight), $"Reloading: {InputManager.reloading}");
-                DrawLabel(new Rect(20, TopMargin + 600, BoxWidth - 20, LabelHeight), $"Aiming: {InputManager.aiming}");
-                DrawLabel(new Rect(20, TopMargin + 620, BoxWidth - 20, LabelHeight), $"Sprinting: {InputManager.sprinting}");
-                DrawLabel(new Rect(20, TopMargin + 640, BoxWidth - 20, LabelHeight), $"Crouching: {InputManager.crouching}");
-                DrawLabel(new Rect(20, TopMargin + 660, BoxWidth - 20, LabelHeight), $"Interacting: {InputManager.interacting}");
-            });
+            GUI.Label(new Rect(20, topMargin + 60, boxWidth - 20, 20), "Player Orientation: " + playerMovement.orientation.forward);
+
+            GUI.Label(new Rect(20, topMargin + 80, boxWidth - 20, 20), "Player State: " + playerStates.CurrentState);
+
+            GUI.Box(new Rect(10, topMargin + 120, boxWidth, 170), "Weapon Information");
+
+            GUI.Label(new Rect(20, topMargin + 140, boxWidth - 20, 20), "Weapon_SO: " + weaponController.weapon);
+            GUI.Label(new Rect(20, topMargin + 160, boxWidth - 20, 20), "Weapon Object: " + weaponController.id);
+            GUI.Label(new Rect(20, topMargin + 180, boxWidth - 20, 20), "Weapon Total Bullets: " + weaponController.id?.totalBullets);
+            GUI.Label(new Rect(20, topMargin + 200, boxWidth - 20, 20), "Weapon Current Bullets: " + weaponController.id?.bulletsLeftInMagazine);
+            GUI.Label(new Rect(20, topMargin + 220, boxWidth - 20, 20), "Reloading: " + weaponController.Reloading);
+            GUI.Label(new Rect(20, topMargin + 240, boxWidth - 20, 20), "Weapon State: " + weaponStates.CurrentState);
+            GUI.Label(new Rect(20, topMargin + 260, boxWidth - 20, 20), "Weapon aiming: " + weaponController.isAiming);
+            GUI.Box(new Rect(10, topMargin + 300, boxWidth, 70), "Player Stats Information");
+
+            GUI.Label(new Rect(20, topMargin + 320, boxWidth - 20, 20), "Health: " + Mathf.Round(playerStats.health) + " / " + playerStats.MaxHealth);
+            GUI.Label(new Rect(20, topMargin + 340, boxWidth - 20, 20), "Shield: " + Mathf.Round(playerStats.shield) + " / " + playerStats.MaxShield);
+
+            GUI.Box(new Rect(10, topMargin + 380, boxWidth, 70), "Interact Manager Information");
+
+            GUI.Label(new Rect(20, topMargin + 400, boxWidth - 20, 20), "Highlighted Interactable: " + interactManager.HighlightedInteractable?.name);
+            GUI.Label(new Rect(20, topMargin + 420, boxWidth - 20, 20), "Interact Progress: " + interactManager.progressElapsed.ToString("F1"));
+
+
+            GUI.Box(new Rect(10, topMargin + 460, boxWidth, 300), "Input Manager");
+            GUI.Label(new Rect(20, topMargin + 480, boxWidth - 20, 20), "Movement: (" + InputManager.x.ToString("F1") + "," + InputManager.y.ToString("F1") + ")");
+            GUI.Label(new Rect(20, topMargin + 500, boxWidth - 20, 20), "Look: (" + InputManager.mousex.ToString("F1") + "," + InputManager.mousey.ToString("F1") + ")");
+            GUI.Label(new Rect(20, topMargin + 520, boxWidth - 20, 20), "Gamepad Look: (" + InputManager.controllerx.ToString("F1") + "," + InputManager.controllery.ToString("F1") + ")");
+            GUI.Label(new Rect(20, topMargin + 540, boxWidth - 20, 20), "Shooting: " + InputManager.shooting);
+            GUI.Label(new Rect(20, topMargin + 560, boxWidth - 20, 20), "Reloading: " + InputManager.reloading);
+            GUI.Label(new Rect(20, topMargin + 580, boxWidth - 20, 20), "Aiming: " + InputManager.aiming);
+            GUI.Label(new Rect(20, topMargin + 600, boxWidth - 20, 20), "Sprinting: " + InputManager.sprinting);
+            GUI.Label(new Rect(20, topMargin + 620, boxWidth - 20, 20), "Crouching: " + InputManager.crouching);
+            GUI.Label(new Rect(20, topMargin + 640, boxWidth - 20, 20), "Interacting: " + InputManager.interacting);
         }
 #endif
     }
+
 }

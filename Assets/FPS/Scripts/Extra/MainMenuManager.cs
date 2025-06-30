@@ -59,6 +59,15 @@ namespace cowsins
 
         public void ChangeScene(int scene) => SceneManager.LoadScene(scene);
 
+        public void PlaySound(AudioClip clickSFX)
+        {
+            if (audioSource)
+            {
+                audioSource.clip = clickSFX;
+                audioSource.Play();
+            }
+        }
+
         public void LoadScene(int sceneIndex)
         {
             SceneManager.LoadSceneAsync(sceneIndex);

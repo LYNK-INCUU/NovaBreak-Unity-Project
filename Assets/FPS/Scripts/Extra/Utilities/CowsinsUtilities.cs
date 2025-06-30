@@ -1,9 +1,8 @@
+using System.Collections;
 using UnityEngine;
-
 #if UNITY_EDITOR
-using UnityEditor;
 using UnityEditor.Presets;
-using UnityEditor.Animations;
+using UnityEditor;
 #endif
 using System.IO;
 
@@ -16,8 +15,8 @@ namespace cowsins
         /// </summary>
         public static Vector3 GetSpreadDirection(float amount, Camera camera)
         {
-            float horSpread = UnityEngine.Random.Range(-amount, amount);
-            float verSpread = UnityEngine.Random.Range(-amount, amount);
+            float horSpread = Random.Range(-amount, amount);
+            float verSpread = Random.Range(-amount, amount);
             Vector3 spread = camera.transform.InverseTransformDirection(new Vector3(horSpread, verSpread, 0));
             Vector3 dir = camera.transform.forward + spread;
 
@@ -36,7 +35,7 @@ namespace cowsins
 
         public static void StopAnim(string anim, Animator animated) => animated.SetBool(anim, false);
 #if UNITY_EDITOR
-        public static void SavePreset(UnityEngine.Object source, string name)
+        public static void SavePreset(Object source, string name)
         {
             if (EmptyString(name))
             {
@@ -52,7 +51,7 @@ namespace cowsins
             AssetDatabase.CreateAsset(preset, directoryPath + name + ".preset");
             Debug.Log("Preset successfully saved");
         }
-        public static void ApplyPreset(Preset preset, UnityEngine.Object target)
+        public static void ApplyPreset(Preset preset, Object target)
         {
             preset.ApplyTo(target);
         }
@@ -60,9 +59,18 @@ namespace cowsins
         public static bool IsUsingUnity6()
         {
             string unityVersion = Application.unityVersion;
-            return unityVersion.StartsWith("6"); 
-        }
 
+            string[] versionParts = unityVersion.Split('.');
+
+            if (versionParts.Length > 0 && int.TryParse(versionParts[0], out int majorVersion))
+            {
+                if (majorVersion >= 6000 && !EditorPrefs.GetBool("Unity6EditorWindowDontShowAgain", false))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 #endif
         public static bool EmptyString(string string_)
         {
@@ -78,132 +86,19 @@ namespace cowsins
 
         public static IDamageable GatherDamageableParent(Transform child)
         {
-            for (Transform parent = child.parent; parent != null; parent = parent.parent)
+            Transform parent = child.transform.parent;
+            while (parent != null)
             {
-                if (parent.TryGetComponent(out IDamageable component))
+                IDamageable component = parent.GetComponent<IDamageable>();
+                if (component != null)
                 {
                     return component;
                 }
+                parent = parent.parent;
             }
+
             return null;
         }
 
-
-        /// <summary>
-        /// Grabs the attachment object and the id given an attachment identifier
-        /// </summary>
-        /// <param name="atcToCheck">Attachment object to get information about returned.</param>
-        /// <param name="wID">Weapon Identification that holds the attachments</param>
-        /// <returns></returns>
-        public static (Attachment, int) GetAttachmentID(AttachmentIdentifier_SO atcToCheck, WeaponIdentification wID)
-        {
-            // Check for compatibility
-            for (int i = 0; i < wID.compatibleAttachments.barrels.Length; i++)
-            {
-                if (atcToCheck == wID.compatibleAttachments.barrels[i].attachmentIdentifier) return (wID.compatibleAttachments.barrels[i], i);
-            }
-            for (int i = 0; i < wID.compatibleAttachments.scopes.Length; i++)
-            {
-                if (atcToCheck == wID.compatibleAttachments.scopes[i].attachmentIdentifier) return (wID.compatibleAttachments.scopes[i], i);
-            }
-            for (int i = 0; i < wID.compatibleAttachments.stocks.Length; i++)
-            {
-                if (atcToCheck == wID.compatibleAttachments.stocks[i].attachmentIdentifier) return (wID.compatibleAttachments.stocks[i], i);
-            }
-            for (int i = 0; i < wID.compatibleAttachments.grips.Length; i++)
-            {
-                if (atcToCheck == wID.compatibleAttachments.grips[i].attachmentIdentifier) return (wID.compatibleAttachments.grips[i], i);
-            }
-            for (int i = 0; i < wID.compatibleAttachments.magazines.Length; i++)
-            {
-                if (atcToCheck == wID.compatibleAttachments.magazines[i].attachmentIdentifier) return (wID.compatibleAttachments.magazines[i], i);
-            }
-            for (int i = 0; i < wID.compatibleAttachments.flashlights.Length; i++)
-            {
-                if (atcToCheck == wID.compatibleAttachments.flashlights[i].attachmentIdentifier) return (wID.compatibleAttachments.flashlights[i], i);
-            }
-            for (int i = 0; i < wID.compatibleAttachments.lasers.Length; i++)
-            {
-                if (atcToCheck == wID.compatibleAttachments.lasers[i].attachmentIdentifier) return (wID.compatibleAttachments.lasers[i], i);
-            }
-
-            // Return an error
-            return (null, -1);
-        }
-
-        /// <summary>
-        /// Checks if the attachment is compatible with the current unholstered weapon
-        /// </summary>
-        /// <param name="weapon">Weapon to check compatibility</param>
-        /// <returns></returns>
-        public static (bool, Attachment, int) CompatibleAttachment(Weapon_SO weapon, AttachmentIdentifier_SO attachmentIdentifier)
-        {
-            if (weapon?.weaponObject == null) return (false, null, -1);
-
-            // Loop through all the different compatible attachments types
-            for (int i = 0; i < weapon.weaponObject.compatibleAttachments.barrels.Length; i++)
-            {
-                // If the "i" element of the compatible attachments array selected is equal to this attachment, assign it.
-                if (weapon.weaponObject.compatibleAttachments.barrels[i].attachmentIdentifier == attachmentIdentifier)
-                    return (true, weapon.weaponObject.compatibleAttachments.barrels[i], i);
-            }
-            for (int i = 0; i < weapon.weaponObject.compatibleAttachments.scopes.Length; i++)
-            {
-                if (weapon.weaponObject.compatibleAttachments.scopes[i].attachmentIdentifier == attachmentIdentifier)
-                    return (true, weapon.weaponObject.compatibleAttachments.scopes[i], i);
-            }
-            for (int i = 0; i < weapon.weaponObject.compatibleAttachments.stocks.Length; i++)
-            {
-                if (weapon.weaponObject.compatibleAttachments.stocks[i].attachmentIdentifier == attachmentIdentifier)
-                    return (true, weapon.weaponObject.compatibleAttachments.stocks[i], i);
-            }
-            for (int i = 0; i < weapon.weaponObject.compatibleAttachments.grips.Length; i++)
-            {
-                if (weapon.weaponObject.compatibleAttachments.grips[i].attachmentIdentifier == attachmentIdentifier)
-                    return (true, weapon.weaponObject.compatibleAttachments.grips[i], i);
-            }
-            for (int i = 0; i < weapon.weaponObject.compatibleAttachments.magazines.Length; i++)
-            {
-                if (weapon.weaponObject.compatibleAttachments.magazines[i].attachmentIdentifier == attachmentIdentifier)
-                    return (true, weapon.weaponObject.compatibleAttachments.magazines[i], i);
-            }
-            for (int i = 0; i < weapon.weaponObject.compatibleAttachments.flashlights.Length; i++)
-            {
-                if (weapon.weaponObject.compatibleAttachments.flashlights[i].attachmentIdentifier == attachmentIdentifier)
-                    return (true, weapon.weaponObject.compatibleAttachments.flashlights[i], i);
-            }
-            for (int i = 0; i < weapon.weaponObject.compatibleAttachments.lasers.Length; i++)
-            {
-                if (weapon.weaponObject.compatibleAttachments.lasers[i].attachmentIdentifier == attachmentIdentifier)
-                    return (true, weapon.weaponObject.compatibleAttachments.lasers[i], i);
-            }
-            return (false, null, -1);
-        }
-
-#if UNITY_EDITOR
-        public static (bool, float) CheckClipAvailability(Animator animator, string stateName)
-        {
-            AnimatorController controller = animator.runtimeAnimatorController as AnimatorController;
-            if (controller == null) return (false, 0f);
-
-            foreach (var layer in controller.layers)
-            {
-                foreach (var childState in layer.stateMachine.states)
-                {
-                    if (childState.state.name == stateName)
-                    {
-                        AnimationClip clip = childState.state.motion as AnimationClip;
-                        if (clip != null)
-                        {
-                            return (true, clip.length);
-                        }
-                        return (false, 0f);
-                    }
-                }
-            }
-
-            return (false, 0f);
-        }
-#endif
     }
 }

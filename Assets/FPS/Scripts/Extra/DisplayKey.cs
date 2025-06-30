@@ -18,6 +18,7 @@ namespace cowsins
             }
             txt = GetComponent<TextMeshProUGUI>();
         }
+
         private void Update() => Repaint();
 
         public void Repaint()

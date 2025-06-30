@@ -252,24 +252,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""InventoryFavOpen"",
-                    ""type"": ""Button"",
-                    ""id"": ""9ad71647-bdf1-4fda-829f-451732854ff8"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""ToggleTipsCanvas"",
-                    ""type"": ""Button"",
-                    ""id"": ""d73a9e9b-d4d5-474b-a466-667dcb30a86f"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -639,7 +621,7 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""Movement"",
                     ""id"": ""98f44165-fe46-4c03-8ed5-a7ac76d66222"",
-                    ""path"": ""2DVector(mode=2)"",
+                    ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -710,39 +692,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard"",
                     ""action"": ""InventoryOpen"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""68d7a2fa-e6cb-469b-b990-f3cf23c07f56"",
-                    ""path"": ""<Gamepad>/select"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""InventoryOpen"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""7e9425b0-bc48-4d5e-af82-a12c5e4f1b31"",
-                    ""path"": ""<Keyboard>/q"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard"",
-                    ""action"": ""ToggleTipsCanvas"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""9174a35d-8b82-4d97-8241-27be7b6b1e00"",
-                    ""path"": ""<Keyboard>/q"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Keyboard"",
-                    ""action"": ""InventoryFavOpen"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -838,42 +787,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""type"": ""PassThrough"",
                     ""id"": ""afe14e83-3475-47b0-a3c7-e1abdf766884"",
                     ""expectedControlType"": ""Quaternion"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Select"",
-                    ""type"": ""Button"",
-                    ""id"": ""b243f87a-4989-4ee0-bcc7-a61c785e8b51"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""NorthButton"",
-                    ""type"": ""Button"",
-                    ""id"": ""98162998-2d2f-4d5a-a581-1fdc47f14797"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""WestButton"",
-                    ""type"": ""Button"",
-                    ""id"": ""4e92177a-4410-4b75-b75a-1b37eb42286e"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Back"",
-                    ""type"": ""Button"",
-                    ""id"": ""40390a06-cede-480e-9680-8314207a8f01"",
-                    ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -1319,83 +1232,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
                     ""action"": ""TrackedDeviceOrientation"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""b573b86b-3a7f-46ee-9ab0-9ac0c09baffd"",
-                    ""path"": ""<Gamepad>/buttonEast"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Back"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""4afd0ab7-b2c1-4b5e-8036-83f0c9dba8dc"",
-                    ""path"": ""<Gamepad>/select"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Back"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""4ddf353e-2b28-4036-b194-7772963f2b26"",
-                    ""path"": ""<Keyboard>/tab"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Back"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""d419b3db-c6bc-4fb9-8863-095893239fa5"",
-                    ""path"": ""<Keyboard>/escape"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Back"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""9a685f8b-9e48-4b8e-8e5e-e80ceb4fe803"",
-                    ""path"": ""<Gamepad>/buttonWest"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""WestButton"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""480ab836-28dc-4a9e-94a3-8cb313e683d5"",
-                    ""path"": ""<Gamepad>/buttonSouth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""Select"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""be6983e9-a81c-4b29-bc89-22abf58c3220"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": ""Gamepad"",
-                    ""action"": ""NorthButton"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -1450,8 +1286,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         m_GameControls_Movement = m_GameControls.FindAction("Movement", throwIfNotFound: true);
         m_GameControls_ToggleFlashLight = m_GameControls.FindAction("ToggleFlashLight", throwIfNotFound: true);
         m_GameControls_InventoryOpen = m_GameControls.FindAction("InventoryOpen", throwIfNotFound: true);
-        m_GameControls_InventoryFavOpen = m_GameControls.FindAction("InventoryFavOpen", throwIfNotFound: true);
-        m_GameControls_ToggleTipsCanvas = m_GameControls.FindAction("ToggleTipsCanvas", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1464,10 +1298,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         m_UI_RightClick = m_UI.FindAction("RightClick", throwIfNotFound: true);
         m_UI_TrackedDevicePosition = m_UI.FindAction("TrackedDevicePosition", throwIfNotFound: true);
         m_UI_TrackedDeviceOrientation = m_UI.FindAction("TrackedDeviceOrientation", throwIfNotFound: true);
-        m_UI_Select = m_UI.FindAction("Select", throwIfNotFound: true);
-        m_UI_NorthButton = m_UI.FindAction("NorthButton", throwIfNotFound: true);
-        m_UI_WestButton = m_UI.FindAction("WestButton", throwIfNotFound: true);
-        m_UI_Back = m_UI.FindAction("Back", throwIfNotFound: true);
     }
 
     ~@PlayerActions()
@@ -1567,8 +1397,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_GameControls_Movement;
     private readonly InputAction m_GameControls_ToggleFlashLight;
     private readonly InputAction m_GameControls_InventoryOpen;
-    private readonly InputAction m_GameControls_InventoryFavOpen;
-    private readonly InputAction m_GameControls_ToggleTipsCanvas;
     /// <summary>
     /// Provides access to input actions defined in input action map "GameControls".
     /// </summary>
@@ -1653,14 +1481,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @InventoryOpen => m_Wrapper.m_GameControls_InventoryOpen;
         /// <summary>
-        /// Provides access to the underlying input action "GameControls/InventoryFavOpen".
-        /// </summary>
-        public InputAction @InventoryFavOpen => m_Wrapper.m_GameControls_InventoryFavOpen;
-        /// <summary>
-        /// Provides access to the underlying input action "GameControls/ToggleTipsCanvas".
-        /// </summary>
-        public InputAction @ToggleTipsCanvas => m_Wrapper.m_GameControls_ToggleTipsCanvas;
-        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_GameControls; }
@@ -1740,12 +1560,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @InventoryOpen.started += instance.OnInventoryOpen;
             @InventoryOpen.performed += instance.OnInventoryOpen;
             @InventoryOpen.canceled += instance.OnInventoryOpen;
-            @InventoryFavOpen.started += instance.OnInventoryFavOpen;
-            @InventoryFavOpen.performed += instance.OnInventoryFavOpen;
-            @InventoryFavOpen.canceled += instance.OnInventoryFavOpen;
-            @ToggleTipsCanvas.started += instance.OnToggleTipsCanvas;
-            @ToggleTipsCanvas.performed += instance.OnToggleTipsCanvas;
-            @ToggleTipsCanvas.canceled += instance.OnToggleTipsCanvas;
         }
 
         /// <summary>
@@ -1811,12 +1625,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @InventoryOpen.started -= instance.OnInventoryOpen;
             @InventoryOpen.performed -= instance.OnInventoryOpen;
             @InventoryOpen.canceled -= instance.OnInventoryOpen;
-            @InventoryFavOpen.started -= instance.OnInventoryFavOpen;
-            @InventoryFavOpen.performed -= instance.OnInventoryFavOpen;
-            @InventoryFavOpen.canceled -= instance.OnInventoryFavOpen;
-            @ToggleTipsCanvas.started -= instance.OnToggleTipsCanvas;
-            @ToggleTipsCanvas.performed -= instance.OnToggleTipsCanvas;
-            @ToggleTipsCanvas.canceled -= instance.OnToggleTipsCanvas;
         }
 
         /// <summary>
@@ -1864,10 +1672,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_UI_RightClick;
     private readonly InputAction m_UI_TrackedDevicePosition;
     private readonly InputAction m_UI_TrackedDeviceOrientation;
-    private readonly InputAction m_UI_Select;
-    private readonly InputAction m_UI_NorthButton;
-    private readonly InputAction m_UI_WestButton;
-    private readonly InputAction m_UI_Back;
     /// <summary>
     /// Provides access to input actions defined in input action map "UI".
     /// </summary>
@@ -1919,22 +1723,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "UI/TrackedDeviceOrientation".
         /// </summary>
         public InputAction @TrackedDeviceOrientation => m_Wrapper.m_UI_TrackedDeviceOrientation;
-        /// <summary>
-        /// Provides access to the underlying input action "UI/Select".
-        /// </summary>
-        public InputAction @Select => m_Wrapper.m_UI_Select;
-        /// <summary>
-        /// Provides access to the underlying input action "UI/NorthButton".
-        /// </summary>
-        public InputAction @NorthButton => m_Wrapper.m_UI_NorthButton;
-        /// <summary>
-        /// Provides access to the underlying input action "UI/WestButton".
-        /// </summary>
-        public InputAction @WestButton => m_Wrapper.m_UI_WestButton;
-        /// <summary>
-        /// Provides access to the underlying input action "UI/Back".
-        /// </summary>
-        public InputAction @Back => m_Wrapper.m_UI_Back;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1991,18 +1779,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @TrackedDeviceOrientation.started += instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.performed += instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.canceled += instance.OnTrackedDeviceOrientation;
-            @Select.started += instance.OnSelect;
-            @Select.performed += instance.OnSelect;
-            @Select.canceled += instance.OnSelect;
-            @NorthButton.started += instance.OnNorthButton;
-            @NorthButton.performed += instance.OnNorthButton;
-            @NorthButton.canceled += instance.OnNorthButton;
-            @WestButton.started += instance.OnWestButton;
-            @WestButton.performed += instance.OnWestButton;
-            @WestButton.canceled += instance.OnWestButton;
-            @Back.started += instance.OnBack;
-            @Back.performed += instance.OnBack;
-            @Back.canceled += instance.OnBack;
         }
 
         /// <summary>
@@ -2044,18 +1820,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
             @TrackedDeviceOrientation.started -= instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.performed -= instance.OnTrackedDeviceOrientation;
             @TrackedDeviceOrientation.canceled -= instance.OnTrackedDeviceOrientation;
-            @Select.started -= instance.OnSelect;
-            @Select.performed -= instance.OnSelect;
-            @Select.canceled -= instance.OnSelect;
-            @NorthButton.started -= instance.OnNorthButton;
-            @NorthButton.performed -= instance.OnNorthButton;
-            @NorthButton.canceled -= instance.OnNorthButton;
-            @WestButton.started -= instance.OnWestButton;
-            @WestButton.performed -= instance.OnWestButton;
-            @WestButton.canceled -= instance.OnWestButton;
-            @Back.started -= instance.OnBack;
-            @Back.performed -= instance.OnBack;
-            @Back.canceled -= instance.OnBack;
         }
 
         /// <summary>
@@ -2248,20 +2012,6 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnInventoryOpen(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "InventoryFavOpen" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnInventoryFavOpen(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "ToggleTipsCanvas" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnToggleTipsCanvas(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
@@ -2340,33 +2090,5 @@ public partial class @PlayerActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTrackedDeviceOrientation(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Select" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnSelect(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "NorthButton" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnNorthButton(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "WestButton" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnWestButton(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Back" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnBack(InputAction.CallbackContext context);
     }
 }

@@ -12,11 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ed8e9adcfedb5d4085ce56cbdf53865, type: 3}
   m_Name: FNXExtendedMagazine
   m_EditorClassIdentifier: 
-  _name: FNX Extended Magazine
-  icon: {fileID: 21300000, guid: 5866772e9b9305b4aaebfe5f7dc5c0ec, type: 3}
+  attachmentName: Extended Magazine
+  attachmentIcon: {fileID: 21300000, guid: 5866772e9b9305b4aaebfe5f7dc5c0ec, type: 3}
   pickUpGraphics: {fileID: 550005010044577691, guid: c15c600c4c9fa7644bf513ff0cabc9ca, type: 3}
-  maxStack: 1
-  itemSize: {x: 1, y: 1}
-  irregularItemIcon: {fileID: 0}
-  applyWeight: 0
-  weightMultiplier: 1

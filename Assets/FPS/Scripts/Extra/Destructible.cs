@@ -2,11 +2,6 @@
 /// This script belongs to cowsins™ as a part of the cowsins´ FPS Engine. All rights reserved. 
 /// </summary>
 using UnityEngine;
-#if SAVE_LOAD_ADD_ON
-using cowsins.SaveLoad;
-using System.Collections.Generic;
-#endif
-
 namespace cowsins
 {
     /// <summary>
@@ -20,9 +15,9 @@ namespace cowsins
     /// For any doubts check the documentation or contact the support.
     /// 
     /// </summary>
-    public class Destructible : Identifiable, IDamageable
+    public class Destructible : MonoBehaviour, IDamageable
     {
-        [SaveField] protected float health;
+        float health;
         [Tooltip("Initial health of the destructible"), SerializeField] protected float maxHealth;
 
         [Tooltip("Instantiate something cool when the object is destroyed, such as coins, a weapon, or any kind of loot, " +
@@ -41,18 +36,11 @@ namespace cowsins
         }
 
         // Handle damage, have in mind that this is also IDamageable
-        public void Damage(float damage, bool isHeadshot)
-        {
-            health -= damage;
-            if (health <= 0) health = 0;
-#if SAVE_LOAD_ADD_ON
-            StoreData();
-#endif
-        }
+        public void Damage(float damage, bool isHeadshot) => health -= damage;
 
         /// <summary>
         /// Make sure to override this on your new custom class.
-        /// If you still want to call this method, make sure to write the following line:
+        /// If you still wanna call this method, make sure to write the following line:
         /// base.Die();
         /// Check Crate.cs for a clear example.
         /// </summary>
@@ -61,25 +49,5 @@ namespace cowsins
             if (lootInside != null) Instantiate(lootInside, transform.position, Quaternion.identity);
             Destroy(this.gameObject);
         }
-
-#if SAVE_LOAD_ADD_ON
-        public override void StoreData()
-        {
-            if (GameDataManager.instance == null) return;
-
-            if (GameDataManager.instance.destructiblesData == null)
-            {
-                GameDataManager.instance.destructiblesData = new Dictionary<string, CustomSaveData>();
-            }
-            GameDataManager.instance.destructiblesData[UniqueIDValue] = SaveFields();
-        }
-
-        // Interacted State is called after loading.
-        public override void LoadedState()
-        {
-            if(health <= 0)
-            Destroy(this.gameObject); 
-        }
-#endif
     }
 }

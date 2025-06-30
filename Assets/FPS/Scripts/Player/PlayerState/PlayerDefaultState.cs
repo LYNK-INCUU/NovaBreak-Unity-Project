@@ -13,11 +13,6 @@ namespace cowsins
         {
             player = _ctx.GetComponent<PlayerMovement>();
             stats = _ctx.GetComponent<PlayerStats>();
-
-            InputManager.onJump += player.SwitchToJumpState;
-            InputManager.onDash += player.SwitchToDashState;
-            InputManager.onStartGrapple += player.StartGrapple;
-            InputManager.onStopGrapple += player.StopGrapple;
         }
 
         public override void UpdateState()
@@ -30,13 +25,7 @@ namespace cowsins
 
         public override void FixedUpdateState() { player.Movement(stats.controllable); }
 
-        public override void ExitState() 
-        {
-            InputManager.onJump -= player.SwitchToJumpState;
-            InputManager.onDash -= player.SwitchToDashState;
-            InputManager.onStartGrapple -= player.StartGrapple;
-            InputManager.onStopGrapple -= player.StopGrapple;
-        }
+        public override void ExitState() { }
 
         public override void CheckSwitchState()
         {
@@ -45,9 +34,16 @@ namespace cowsins
 
             // Check Death
             if (stats.health <= 0) SwitchState(_factory.Die());
- 
+
+            // Check Jump
+            if (player.ReadyToJump && InputManager.jumping && (player.EnoughStaminaToJump && (player.grounded || player.canCoyote) || player.wallRunning || player.jumpCount > 0 && player.maxJumps > 1 && player.EnoughStaminaToJump))
+                SwitchState(_factory.Jump());
+
+            // Check Dash
+            if (player.canDash && InputManager.dashing && (player.infiniteDashes || player.currentDashes > 0 && !player.infiniteDashes)) SwitchState(_factory.Dash());
+
             // Check Crouch
-            if (InputManager.crouching && !player.wallRunning && player.allowCrouch)
+            if (InputManager.crouchingDown && !player.wallRunning && player.allowCrouch)
             {
                 if (player.grounded)
                     SwitchState(_factory.Crouch());
@@ -92,8 +88,10 @@ namespace cowsins
             if (canUnCrouch)
             {
                 // Invoke event and stop crouching when it is safe to do so
+                player.events.OnStopCrouch.Invoke();
                 player.StopCrouch();
             }
         }
+
     }
 }

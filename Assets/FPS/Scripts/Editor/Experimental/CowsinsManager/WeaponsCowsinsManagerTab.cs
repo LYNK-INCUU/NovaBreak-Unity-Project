@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+﻿//#if UNITY_EDITOR
 
 using UnityEngine;
 using UnityEditor;
@@ -16,6 +16,7 @@ namespace cowsins
         #region WEAPON_LISTING_VARIABLES
 
         private int gridColumns = 4;
+        private int buttonCount = 16;
 
         private string searchQuery = "";
         private List<Weapon_SO> filteredWeaponList;
@@ -31,8 +32,6 @@ namespace cowsins
         private WeaponCreatorAssistant weaponCreatorAssistantInstance;
 
         #endregion
-
-        public void StartTab() { }
 
         public void OnGUI()
         {
@@ -51,8 +50,8 @@ namespace cowsins
 
             GUILayout.BeginVertical(GUILayout.Width(EditorGUIUtility.currentViewWidth * .5f));
 
-            string shortcutKey = Application.platform == RuntimePlatform.OSXEditor ? "Cmd+Q" : "Ctrl+Q";
-            EditorGUILayout.HelpBox($"\nTIP: You can open the Cowsins Manager directly by pressing {shortcutKey}.\n", MessageType.Info);
+            string shortcutKey = Application.platform == RuntimePlatform.OSXEditor ? "Cmd+W" : "Ctrl+W";
+            EditorGUILayout.HelpBox($"\nTIP: You can open the Weapons tab in Cowsins Manager directly by pressing {shortcutKey}.\n", MessageType.Info);
 
             tabIndex = GUILayout.Toolbar(tabIndex, new string[] { "Get Started", "Weapon Creation Assistant" });
 
@@ -60,10 +59,22 @@ namespace cowsins
             {
                 case 0:
                     EditorGUILayout.HelpBox($"\nDo you need help to get started? No worries! Learn how to make new Weapons in FPS Engine: \n", MessageType.Info);
+                    
+                    GUILayout.Label(weaponsImage, GUILayout.Width(400), GUILayout.Height(250));
 
-                    CowsinsEditorWindowUtilities.DrawTutorialCard(weaponsImage, "https://rumble.com/v6pfpj9-how-to-add-weapons-in-fps-engine-fps-engine-1.3.html?e9s=src_v1_upp", 1);
+                    Rect imageRect = GUILayoutUtility.GetLastRect();
+                    float tutorialButtonSize = 50;
+                    float buttonX = imageRect.x + (imageRect.width / 2) - (tutorialButtonSize / 2);
+                    float buttonY = imageRect.y + (imageRect.height / 2) - (tutorialButtonSize / 2);
 
-                    GUI.backgroundColor = Color.white;
+                    var playButtonStyle = new GUIStyle(GUI.skin.button) { normal = { textColor = Color.white } };
+                    GUI.backgroundColor = new Color(0, 0, 0, 0.5f);
+
+                    if (GUI.Button(new Rect(buttonX, buttonY, tutorialButtonSize, tutorialButtonSize), "▶", playButtonStyle))
+                    {
+                        Application.OpenURL("https://youtu.be/OykOx8CgEMc");
+                    }
+                       GUI.backgroundColor = Color.white;
 
                     GUILayout.Space(10);
                     EditorGUILayout.HelpBox($"\nDo you still need help? Join us on Discord and ask for support!\n", MessageType.Info);
@@ -187,4 +198,4 @@ namespace cowsins
     }
 
 }
-#endif
+//#endif

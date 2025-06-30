@@ -1,20 +1,14 @@
-using System;
 using UnityEngine;
-using System.Collections;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
+using System;
 
 namespace cowsins
 {
     public class PauseMenu : MonoBehaviour
     {
         [SerializeField] private GameObject playerUI;
-        [SerializeField] private Selectable firstSelectedItem;
         [SerializeField] private bool disablePlayerUIWhilePaused;
         [SerializeField] private CanvasGroup menu;
         [SerializeField] private float fadeSpeed;
-        private Coroutine fadeCoroutine;
 
         public static PauseMenu Instance { get; private set; }
 
@@ -26,7 +20,7 @@ namespace cowsins
         [HideInInspector] public PlayerStats stats;
 
         public event Action OnPause;
-        public event Action OnUnPause;
+        public event Action OnUnpause;
 
         private void Awake()
         {
@@ -41,69 +35,66 @@ namespace cowsins
             isPaused = false;
             menu.gameObject.SetActive(false);
             menu.alpha = 0;
-
-            InputManager.onTogglePause += TogglePause;
-
-            if (EventSystem.current == null)
-                Debug.LogError("<color=red>[COWSINS]</color> No <b><color=cyan>EventSystem</color></b> object found in the scene. " +
-                    "Please create a new Empty GameObject and assign the EventSystem component to it to fix this error.");
         }
 
-        private void OnDisable()
+        private void Update()
         {
-            InputManager.onTogglePause -= TogglePause;
-        }
-
-        private IEnumerator HandlePause()
-        {
-            if (disablePlayerUIWhilePaused && !stats.IsDead)
-                playerUI.SetActive(false);
-            menu.gameObject.SetActive(true);
-            while (menu.alpha < 1)
-            {
-                menu.alpha += Time.deltaTime * fadeSpeed;
-                yield return null;
-            }
-            menu.alpha = 1;
-        }
-
-        private IEnumerator HandleUnpause()
-        {
-            playerUI.SetActive(true);
-            while (menu.alpha > 0)
-            {
-                menu.alpha -= Time.deltaTime * fadeSpeed;
-                yield return null;
-            }
-            menu.alpha = 0;
-            menu.gameObject.SetActive(false);
-        }
-
-        public void TogglePause()
-        {
-            isPaused = !isPaused;
-
-            if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
-
+            HandlePauseInput();
             if (isPaused)
             {
-                stats.LoseControl();
-                fadeCoroutine = StartCoroutine(HandlePause());
-                OnPause?.Invoke();
-                if(Gamepad.current !=  null)
-                    EventSystem.current?.SetSelectedGameObject(firstSelectedItem.gameObject);
+                HandlePause();
             }
             else
-                UnPause();
+            {
+                HandleUnpause();
+            }
+        }
+
+        private void HandlePauseInput()
+        {
+            if (InputManager.pausing)
+            {
+                TogglePause();
+            }
+        }
+
+        private void HandlePause()
+        {
+            if (!menu.gameObject.activeSelf)
+            {
+                menu.gameObject.SetActive(true);
+                menu.alpha = 0;
+            }
+
+            menu.alpha = Mathf.Min(menu.alpha + Time.deltaTime * fadeSpeed, 1);
+
+            if (disablePlayerUIWhilePaused && !stats.IsDead)
+            {
+                playerUI.SetActive(false);
+            }
+        }
+
+        private void HandleUnpause()
+        {
+            menu.alpha = Mathf.Max(menu.alpha - Time.deltaTime * fadeSpeed, 0);
+
+            if (menu.alpha <= 0)
+            {
+                menu.gameObject.SetActive(false);
+            }
+
+            playerUI.SetActive(true);
         }
 
         public void UnPause()
         {
             isPaused = false;
             stats.CheckIfCanGrantControl();
-            if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
-            fadeCoroutine = StartCoroutine(HandleUnpause());
-            OnUnPause?.Invoke();
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            playerUI.SetActive(true);
+
+            OnUnpause?.Invoke();
         }
 
         public void QuitGame()
@@ -111,5 +102,31 @@ namespace cowsins
             Application.Quit();
         }
 
+        public void TogglePause()
+        {
+            isPaused = !isPaused;
+
+            if (isPaused)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                stats.LoseControl();
+                if (disablePlayerUIWhilePaused && !stats.IsDead)
+                {
+                    playerUI.SetActive(false);
+                }
+
+                OnPause?.Invoke();
+            }
+            else
+            {
+                stats.CheckIfCanGrantControl();
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+                playerUI.SetActive(true);
+
+                OnUnpause?.Invoke();
+            }
+        }
     }
 }

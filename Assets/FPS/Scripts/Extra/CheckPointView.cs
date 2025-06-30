@@ -29,8 +29,8 @@ namespace cowsins
         private Transform playerTransform;
         #endregion
 
-        private readonly float[] ConversionFactors =
-        {
+        private static readonly float[] ConversionFactors =
+       {
             1f,                  // Metres
             0.001f,              // Kilometres
             39.37f,              // Inches
@@ -39,7 +39,7 @@ namespace cowsins
             0.000621371192f      // Miles
         };
 
-        private readonly string[] UnitLabels =
+           private static readonly string[] UnitLabels =
         {
             "m", "km", "inch", "feet", "yards", "miles"
         };

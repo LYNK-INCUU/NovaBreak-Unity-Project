@@ -28,7 +28,9 @@ namespace cowsins
 
             player.events.OnStartDash.Invoke();
 
-            player.cameraFOVManager.ForceAddFOV(-player.fovToAddOnDash);
+            Camera playerCam = player.GetComponent<WeaponController>().mainCamera.GetComponent<Camera>();
+
+            playerCam.fieldOfView += player.fovToAddOnDash;
 
             if (!player.infiniteDashes)
             {
@@ -46,6 +48,7 @@ namespace cowsins
 
         public override void UpdateState()
         {
+
             player.events.OnDashing?.Invoke();
 
             Vector3 dir = GetProperDirection();

@@ -433,7 +433,6 @@ MonoBehaviour:
   firePoint: {fileID: 6351931128656819780}
   muzzleFlash: {fileID: 1336949550903370, guid: 8cf5557d6c0260745966dc2d92db1d99, type: 3}
   fireRate: 1
-  projectilePoolSize: 5
 --- !u!114 &6351931128759503968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -446,11 +445,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5890fdf64f390414bb1e5dbe4986e4aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: 26e201c2-6932-4753-babb-5cbb44c6749c
   _name: Turret
   health: 0
-  shield: 0
   maxHealth: 70
+  shield: 0
   maxShield: 0
   destroyOnDie: 1
   deathEffect: {fileID: 5018994898019192216, guid: ab977a440365d1c4092c15552e5ff157, type: 3}
@@ -459,9 +457,17 @@ MonoBehaviour:
   showUI: 1
   showDamagePopUps: 1
   showKillFeed: 1
+  damagePopUp: {fileID: 7809040584024702416, guid: 606941a26ff1c814391ed7f66dfa9f5d, type: 3}
+  shieldColor: {r: 0.68235296, g: 1, b: 0.92156863, a: 1}
+  healthColor: {r: 0.972549, g: 0.61960787, b: 0.61960787, a: 1}
+  xVariation: 0.5
   dieSFX: {fileID: 0}
+  player: {fileID: 0}
   events:
     OnSpawn:
+      m_PersistentCalls:
+        m_Calls: []
+    OnShoot:
       m_PersistentCalls:
         m_Calls: []
     OnDamaged:

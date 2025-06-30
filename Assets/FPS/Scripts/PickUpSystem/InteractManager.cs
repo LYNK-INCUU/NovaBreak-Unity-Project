@@ -28,7 +28,6 @@ namespace cowsins
 
         private Interactable highlightedInteractable;
 
-        private bool isForbiddenInteraction = false;    
         public Interactable HighlightedInteractable { get { return highlightedInteractable; } }
 
         [Tooltip("Enable this toggle if you want to be able to drop your weapons")] public bool canDrop;
@@ -40,8 +39,6 @@ namespace cowsins
         [Tooltip("Distance from the player to detect interactable objects"), SerializeField] private float detectInteractionDistance;
 
         [Tooltip("Distance from the player where the pickeable will be instantiated"), SerializeField] private float droppingDistance;
-
-        [Tooltip("Randomize drop offset (from -randomDropOffset to +randomDropOffset)"), SerializeField, Range(0f,1f)] private float randomDropOffset = .2f;
 
         [SerializeField, Tooltip("How much time player has to hold the interact button in order to successfully interact")] private float progressRequiredToInteract;
 
@@ -65,37 +62,31 @@ namespace cowsins
 
         public Events events;
 
-        private WeaponController weaponController;
+        private WeaponController wcon;
 
-        public float DroppingDistance => droppingDistance;
+        public float DroppingDistance { get { return droppingDistance; } }
 
-        public bool DuplicateWeaponAddsBullets => duplicateWeaponAddsBullets;   
+        public bool DuplicateWeaponAddsBullets { get { return duplicateWeaponAddsBullets; }
+        }
         private void OnEnable()
         {
             // Subscribe to the event
             UIEvents.onAttachmentUIElementClicked += DropAttachment;
         }
 
-        private void Start()
-        {
-            // Grab main references
-            weaponController = GetComponent<WeaponController>();
-            playerMovement = GetComponent<PlayerMovement>();
-            orientation = playerMovement.orientation;
-            mainCamera = weaponController.mainCamera;
-
-            // Listen for the drop event from the InputManager
-            if(canDrop)
-                InputManager.onDrop += HandleDrop;
-        }
-
-
         private void OnDisable()
         {
             // Unsubscribe to the event
             UIEvents.onAttachmentUIElementClicked = null;
-            if (canDrop) 
-                InputManager.onDrop -= HandleDrop;
+        }
+
+        private void Start()
+        {
+            // Grab main references
+            wcon = GetComponent<WeaponController>();
+            playerMovement = GetComponent<PlayerMovement>();
+            orientation = playerMovement.orientation;
+            mainCamera = GetComponent<WeaponController>().mainCamera;
         }
 
         private void Update()
@@ -103,51 +94,51 @@ namespace cowsins
             // If we already interacted, or the player is not controllable, return!
             if (alreadyInteracted || !PlayerStats.Controllable) return;
 
-            DetectInteractable();
+            DetectPickeable();
             DetectInput();
+            HandleDrop();
         }
-        private void DetectInteractable()
+        private void DetectPickeable()
         {
             // It will be used later on to determine the hit object.
             RaycastHit interactableHit;
+            LayerMask combinedMask = mask | playerMovement.whatIsGround;
             // If we got a hit from the raycast:
-            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out interactableHit, detectInteractionDistance, mask))
+            if (Physics.Raycast(mainCamera.transform.position, mainCamera.transform.forward, out interactableHit, detectInteractionDistance, combinedMask))
             {
-                Vector3 directionToHit = interactableHit.point - mainCamera.transform.position;
-                float distanceToHit = directionToHit.magnitude;
-                int obstructionMask = playerMovement.WhatIsGround & ~mask; // Exclude mask from whatIsGround
-
-                // Check for walls or any other objects between camera and the interactable
-                if (Physics.Raycast(mainCamera.transform.position, directionToHit.normalized, distanceToHit, obstructionMask))
+                // Check if the interaction is forbidden
+                if (IsForbiddenInteraction(interactableHit))
                 {
-                    DisableInteractionUI();
-                    return;
+                    // If it is forbidden, call the event
+                    UIEvents.forbiddenInteraction?.Invoke();
                 }
-
-                if (highlightedInteractable == null)
+                else
                 {
-                    Interactable interactableTarget = interactableHit.collider.GetComponent<Interactable>();
-                    // Check if the interaction is forbidden
-                    if (interactableTarget.IsForbiddenInteraction(weaponController))
-                    {
-                        // If it is forbidden, call the event
-                        UIEvents.forbiddenInteraction?.Invoke();
-                        isForbiddenInteraction = true; 
-                    }
-                    else
-                    {
-                        // If its not, enable interaction UI to display an interaction
-                        EnableInteractionUI(interactableTarget);
-                        isForbiddenInteraction = false; 
-                    }
-                    highlightedInteractable = interactableTarget;
+                    // If its not, enable interaction UI to display an interaction
+                    EnableInteractionUI(interactableHit.collider.GetComponent<Interactable>());
                 }
             }
             else
             {
                 // If we dont find any interactable, disable interactions UI
+                DisableLookingAtInteractable();
                 DisableInteractionUI();
             }
+
+        }
+        // Checks if the interaction is forbidden
+        private bool IsForbiddenInteraction(RaycastHit hit)
+        {
+            // Gather the BulletsPickeable component
+            BulletsPickeable bulletsPickable = hit.collider.GetComponent<BulletsPickeable>();
+            // Gathers the AttachmentPickeable component
+            AttachmentPickeable attachmentPickeable = hit.collider.GetComponent<AttachmentPickeable>();
+            // Gathers the WeaponController component
+            WeaponController weaponController = GetComponent<WeaponController>();
+
+            // Check if we can pick the pickeable up or not and return a boolean.
+            return (bulletsPickable != null && (weaponController.weapon != null && !weaponController.weapon.limitedMagazines || weaponController.weapon == null)) ||
+                (attachmentPickeable != null && (weaponController.weapon != null && !attachmentPickeable.CompatibleAttachment(weaponController) || weaponController.weapon == null));
         }
 
         private void EnableInteractionUI(Interactable interactable)
@@ -165,20 +156,25 @@ namespace cowsins
             UIEvents.allowedInteraction?.Invoke(interactable.interactText);
         }
 
-        private void DisableInteractionUI()
+        private void DisableLookingAtInteractable()
         {
             if (highlightedInteractable != null)
             {
                 highlightedInteractable.interactable = false;
                 highlightedInteractable.Unhighlight();
                 highlightedInteractable = null;
-                UIEvents.disableInteractionUI?.Invoke();
             }
+        }
+
+        private void DisableInteractionUI()
+        {
+            DisableLookingAtInteractable();
+            UIEvents.disableInteractionUI?.Invoke();
         }
 
         private void DetectInput()
         {
-            if (highlightedInteractable == null || isForbiddenInteraction)
+            if (highlightedInteractable == null)
             {
                 progressElapsed = -.01f;
                 return;
@@ -226,17 +222,15 @@ namespace cowsins
         private void HandleDrop()
         {
             // Handles weapon dropping by pressing the drop button
-            if (weaponController.weapon == null || weaponController.Reloading || inspecting || !PlayerStats.Controllable) return;
+            if (!InputManager.dropping || wcon.weapon == null || wcon.Reloading || !canDrop) return;
 
-            WeaponPickeable pick = Instantiate(weaponGenericPickeable, orientation.position + orientation.forward * droppingDistance + transform.right * randomDropOffset, orientation.rotation) as WeaponPickeable;
-            pick.Drop(weaponController, orientation);
-            WeaponIdentification wp = weaponController.inventory[weaponController.currentWeapon]; 
-            pick.SetPickeableAttachments(wp.barrel?.attachmentIdentifier, wp.scope?.attachmentIdentifier, wp.stock?.attachmentIdentifier,
-                wp.grip?.attachmentIdentifier, wp.magazine?.attachmentIdentifier, wp.flashlight?.attachmentIdentifier, wp.laser?.attachmentIdentifier);
+            WeaponPickeable pick = Instantiate(weaponGenericPickeable, orientation.position + orientation.forward * droppingDistance, orientation.rotation) as WeaponPickeable;
+            pick.Drop(wcon, orientation);
+            WeaponIdentification wp = wcon.inventory[wcon.currentWeapon];
+            pick.SetPickeableAttachments(wp.barrel, wp.scope, wp.stock, wp.grip, wp.magazine, wp.flashlight, wp.laser);
 
-            weaponController.ForceAimReset();
-            weaponController.ReleaseCurrentWeapon();
-            weaponController.GetWeaponWeightModifier(); 
+            wcon.ForceAimReset();
+            wcon.ReleaseCurrentWeapon();
 
             events.onDrop?.Invoke(pick);
         }
@@ -244,7 +238,7 @@ namespace cowsins
 
         public void GenerateInspectionUI()
         {
-            UIEvents.onGenerateInspectionUI?.Invoke(weaponController);
+            UIEvents.onGenerateInspectionUI?.Invoke(wcon);
         }
 
         /// <summary>
@@ -259,10 +253,10 @@ namespace cowsins
             // Assign the appropriate attachment identifier to the spawned pickeable.
             pick.attachmentIdentifier = atc.attachmentIdentifier;
             // Get visuals
-            pick.Drop(weaponController, orientation);
+            pick.Drop(wcon, orientation);
 
             // Grab the current weaponidentification object.
-            WeaponIdentification weapon = weaponController.inventory[weaponController.currentWeapon];
+            WeaponIdentification weapon = wcon.inventory[wcon.currentWeapon];
             // Store all the types of attachments and the current attachment of each type inside a dictionary.
             Dictionary<Type, Attachment> attachments = new Dictionary<Type, Attachment> {
         { typeof(Barrel), weapon.barrel },
@@ -348,11 +342,11 @@ namespace cowsins
             weapon.laser = attachments[typeof(Laser)] as Laser;
 
             // Adjust the magazine size and unholster the weapon
-            weaponController.id.GetMagazineSize();
-            weaponController.UnHolster(weapon.gameObject, false);
+            wcon.id.GetMagazineSize();
+            wcon.UnHolster(weapon.gameObject, false);
 
             if (displayCurrentAttachmentsOnly)
-                UIController.instance.GenerateInspectionUI(weaponController);
+                UIController.instance.GenerateInspectionUI(wcon);
         }
     }
 }

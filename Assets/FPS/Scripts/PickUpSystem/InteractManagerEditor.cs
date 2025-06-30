@@ -55,7 +55,6 @@ namespace cowsins
                         {
                             EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serializedObject.FindProperty("droppingDistance"));
-                            EditorGUILayout.PropertyField(serializedObject.FindProperty("randomDropOffset"));
                             EditorGUI.indentLevel--;
                         }
                         EditorGUILayout.LabelField("INSPECTION & REALTIME CUSTOMIZATION", EditorStyles.boldLabel);

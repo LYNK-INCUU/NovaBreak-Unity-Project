@@ -12,16 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d01ed731769af95429c32ba164942b3e, type: 3}
   m_Name: Pistol
   m_EditorClassIdentifier: 
-  _name: Pistol
-  description: 
-  icon: {fileID: 21300000, guid: 243d28a3ac1a4914da8cea587a10bf36, type: 3}
-  pickUpGraphics: {fileID: 2092819957812016947, guid: 648b96c7695310045ab6523fd4a2ed5c, type: 3}
-  maxStack: 1
-  itemSize: {x: 1, y: 1}
-  irregularItemIcon: {fileID: 0}
-  applyWeight: 1
-  weightMultiplier: 1
   weaponObject: {fileID: 4366474878721369578, guid: f19ba59a96cc01c4aad28a7bb59dc612, type: 3}
+  _name: Pistol
+  pickUpGraphics: {fileID: 2092819957812016947, guid: 648b96c7695310045ab6523fd4a2ed5c, type: 3}
+  icon: {fileID: 21300000, guid: 243d28a3ac1a4914da8cea587a10bf36, type: 3}
   shootStyle: 0
   shootMethod: 1
   holdProgressSpeed: 454
@@ -57,11 +51,13 @@ MonoBehaviour:
   allowAimingIfReloading: 0
   movementSpeedWhileAiming: 6
   setMovementSpeedWhileAiming: 1
-  crosshairResize: 50
+  crosshairResize: 40
   crosshairPreset: {fileID: 2655988077585873504, guid: 339dc1e687484c544b2b203166ea9a5f, type: 2}
   applyBulletSpread: 1
+  applyWeight: 1
   spreadAmount: 0
   aimSpreadAmount: 0.01
+  weightMultiplier: 1
   applyRecoil: 1
   recoilX:
     serializedVersion: 2
@@ -145,7 +141,7 @@ MonoBehaviour:
   showBulletShells: 1
   bulletHoleImpact:
     defaultImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
-    groundImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
+    groundIMpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
     grassImpact: {fileID: 2462405574108921655, guid: 96098beba501e3247b9452e9455f6189, type: 3}
     enemyImpact: {fileID: 2462405574108921655, guid: 8c95f7225cf58144d86befe4ddc08efb, type: 3}
     metalImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
@@ -169,8 +165,8 @@ MonoBehaviour:
   camShakeAimMultiplier: 0.8
   camShakeCrouchMultiplier: 0.8
   applyFOVEffectOnShooting: 1
-  FOVValueToSubtract: 2
-  AimingFOVValueToSubtract: 1
+  FOVValueToSubtract: 0
+  AimingFOVValueToSubtract: 0
   amountOfShootAnimations: 0
   bulletTrail: {fileID: 1436881700163988445, guid: 72fbb691dea891c45a6caa10b437b857, type: 3}
   damagePerHit: 12

@@ -12,12 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ed8e9adcfedb5d4085ce56cbdf53865, type: 3}
   m_Name: OldScope
   m_EditorClassIdentifier: 
-  _name: Old Scope
-  description: 
-  icon: {fileID: 21300000, guid: 686c488a7f6e51d4691c2ba9c49d69f0, type: 3}
+  attachmentName: Old Scope
+  attachmentIcon: {fileID: 21300000, guid: 686c488a7f6e51d4691c2ba9c49d69f0, type: 3}
   pickUpGraphics: {fileID: 2472959274757297979, guid: da10312a8a0d6534280faead4cfc4105, type: 3}
-  maxStack: 1
-  itemSize: {x: 1, y: 1}
-  irregularItemIcon: {fileID: 0}
-  applyWeight: 0
-  weightMultiplier: 1

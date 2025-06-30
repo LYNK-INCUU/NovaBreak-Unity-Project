@@ -9,7 +9,6 @@ using System;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Collections; 
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -21,15 +20,15 @@ namespace cowsins
     /// </summary>
     public class UIController : MonoBehaviour
     {
-        public PlayerMovement playerMovement;
+        private InteractManager intManager;
 
-        [SerializeField] private PauseMenu pauseMenu;
+        public PlayerMovement playerMovement;
 
         [Tooltip("Use image bars to display player statistics.")] public bool barHealthDisplay;
 
         [Tooltip("Use text to display player statistics.")] public bool numericHealthDisplay;
 
-        public Action<float, float> healthDisplayMethod;
+        private Action<float, float> healthDisplayMethod;
 
         [Tooltip("Slider that will display the health on screen"), SerializeField] private Slider healthSlider;
 
@@ -53,14 +52,6 @@ namespace cowsins
         private GameObject killfeedContainer;
 
         [Tooltip("Object to spawn"), SerializeField] private GameObject killfeedObject;
-
-        [Tooltip("Add a pop up showing the damage that has been dealt. Recommendation: use the already made pop up included in this package. "), SerializeField]
-        private GameObject damagePopUp;
-
-        public GameObject DamagePopUp => damagePopUp;   
-
-        [Tooltip("Horizontal randomness variation"), SerializeField]
-        private float xVariation;
 
         [Tooltip("Attach the UI you want to use as your interaction UI")] public GameObject interactUI;
 
@@ -121,6 +112,11 @@ namespace cowsins
         [SerializeField] private float lerpXpSpeed;
 
 
+        public delegate void AddXP();
+
+        public static AddXP addXP;
+
+
         public static UIController instance { get; set; }
 
         private void Awake()
@@ -129,77 +125,63 @@ namespace cowsins
         }
         private void Start()
         {
+            intManager = PlayerStates.instance.GetComponent<InteractManager>();
             WeaponStates.instance.inspectionUI = inspectionUI;
-            if (ExperienceManager.instance.useExperience) UpdateXP(false);
+            if (ExperienceManager.instance.useExperience) UpdateXP();
             if (!CoinManager.Instance.useCoins && coinsUI != null) coinsUI.SetActive(false);
-
-            StartFadingInventory();
-            if(inspectionUI) inspectionUI.alpha = 0;
-
-            // Register Pool
-            if (damagePopUp) PoolManager.Instance.RegisterPool(damagePopUp, PoolManager.Instance.DamagePopUpsSize);
-
         }
- 
-        // INVENTORY /////////////////////////////////////////////////////////////////////////////////////////
-        public void StartFadingInventory()
+        private void Update()
         {
-            inventoryContainer.alpha = 1f; 
-            StopCoroutine(FadeInventory());
-            StartCoroutine(FadeInventory());
-        }
+            if (healthStatesEffect.color != new Color(healthStatesEffect.color.r,
+                healthStatesEffect.color.g,
+                healthStatesEffect.color.b, 0)) healthStatesEffect.color -= new Color(0, 0, 0, Time.deltaTime * fadeOutTime);
 
-        private IEnumerator FadeInventory()
-        {
-            while (inventoryContainer.alpha > 0)
-            {
-                inventoryContainer.alpha -= Time.deltaTime;
-                yield return null;
+            // EXPERIENCE
+            if (ExperienceManager.instance.useExperience)
+            {  
+                // Calculate the target XP value
+                float targetXp = ExperienceManager.instance.GetCurrentExperience() / ExperienceManager.instance.experienceRequirements[ExperienceManager.instance.playerLevel];
+
+                // Lerp the XP image fill amount towards the target XP value
+                xpImage.fillAmount = Mathf.Lerp(xpImage.fillAmount, targetXp, lerpXpSpeed * Time.deltaTime);
             }
+
+
+            // Handle Inspection UI
+            if (intManager.inspecting)
+            {
+                if (inspectionUI.alpha < 1)
+                    inspectionUI.alpha += Time.deltaTime;
+            }
+            else
+            {
+                inspectionUI.alpha -= Time.deltaTime * 2;
+                if (inspectionUI.alpha < .1f) inspectionUI.gameObject.SetActive(false);
+            }
+
+            //Inventory
+            if ((InputManager.scrolling != 0 || InputManager.nextweapon || InputManager.previousweapon) && !InputManager.reloading) inventoryContainer.alpha = 1;
+            else if (inventoryContainer.alpha > 0) inventoryContainer.alpha -= Time.deltaTime;
         }
 
         // HEALTH SYSTEM /////////////////////////////////////////////////////////////////////////////////////////
         private void UpdateHealthUI(float health, float shield, bool damaged)
         {
+
             healthDisplayMethod?.Invoke(health, shield);
 
             Color colorSelected = damaged ? damageColor : healColor;
             healthStatesEffect.color = colorSelected;
-
-            StartCoroutine(ReduceHealthStatesAlpha());
         }
 
         public void UpdateCoinsPanel()
         {
             healthStatesEffect.color = coinCollectColor;
-            StartCoroutine(ReduceHealthStatesAlpha());
         }
 
-        private void UpdateXPPanel()
+        public void UpdateXPPanel()
         {
             healthStatesEffect.color = xpCollectColor;
-            StartCoroutine(ReduceHealthStatesAlpha());
-        }
-
-        private IEnumerator FillExperienceBar()
-        {
-            float targetXp = ExperienceManager.instance.GetCurrentExperience() / ExperienceManager.instance.experienceRequirements[ExperienceManager.instance.playerLevel];
-            xpImage.fillAmount = 0; 
-            while (xpImage.fillAmount < targetXp)
-            {
-                xpImage.fillAmount = Mathf.Lerp(xpImage.fillAmount, targetXp, lerpXpSpeed * Time.deltaTime);
-                yield return null;
-            }
-        }
-
-        private IEnumerator ReduceHealthStatesAlpha()
-        {
-            Color currentColor = healthStatesEffect.color;
-            while (currentColor.a > 0)
-            {
-                healthStatesEffect.color -= new Color(0, 0, 0, Time.deltaTime * fadeOutTime);
-                yield return null;
-            }
         }
         private void HealthSetUp(float health, float shield, float maxHealth, float maxShield)
         {
@@ -280,62 +262,12 @@ namespace cowsins
             killfeed.transform.GetChild(0).Find("Text").GetComponent<TextMeshProUGUI>().text = "You killed: " + name;
         }
 
-        public void AddDamagePopUp(Vector3 position, float damage)
-        {
-            float xRand = UnityEngine.Random.Range(-xVariation, xVariation);
-            Vector3 posculatedPos = position + new Vector3(xRand, 0, 0);
-            GameObject popup = PoolManager.Instance.GetFromPool(damagePopUp, posculatedPos, Quaternion.identity, .4f);
-            TMP_Text text = popup.transform.GetChild(0).GetComponent<TMP_Text>();
-            if (damage / Mathf.FloorToInt(damage) == 1)
-                text.text = damage.ToString("F0");
-            else
-                text.text = damage.ToString("F1");
-        }
-
         public void Hitmarker(bool headshot)
         {
             hitmarker.Play(headshot);
         }
 
         // INSPECT   /////////////////////////////////////////////////////////////////////////////////////////
-
-        private void InspectionUIFadeIn()
-        {
-            StopCoroutine(InspectionUIFadeInCoroutine());
-            StopCoroutine(InspectionUIFadeOutCoroutine());
-
-            StartCoroutine(InspectionUIFadeInCoroutine());
-        }
-        private IEnumerator InspectionUIFadeInCoroutine()
-        {
-            inspectionUI.gameObject.SetActive(true);
-            inspectionUI.alpha = 0; 
-            while (inspectionUI.alpha < 1)
-            {
-                inspectionUI.alpha += Time.deltaTime;
-                yield return null;
-            }
-            inspectionUI.alpha = 1;
-        }
-
-        private void InspectionUIFadeOut()
-        {
-            StopCoroutine(InspectionUIFadeInCoroutine());
-            StopCoroutine(InspectionUIFadeOutCoroutine());
-
-            StartCoroutine(InspectionUIFadeOutCoroutine());
-        }
-
-        private IEnumerator InspectionUIFadeOutCoroutine()
-        {
-            while (inspectionUI.alpha > 0)
-            {
-                inspectionUI.alpha -= Time.deltaTime;
-                yield return null;
-            }
-            inspectionUI.alpha = 0;
-        }
-
 
         public void GenerateInspectionUI(WeaponController wcon)
         {
@@ -381,8 +313,8 @@ namespace cowsins
                 GameObject display = Instantiate(attachmentDisplay_UIElement, attachmentsGroup.transform);
                 AttachmentUIElement disp = display.GetComponent<AttachmentUIElement>();
                 //print(disp);
-                if (attachments[i].attachmentIdentifier.icon != null)
-                    disp.SetIcon(attachments[i].attachmentIdentifier.icon);
+                if (attachments[i].attachmentIdentifier.attachmentIcon != null)
+                    disp.SetIcon(attachments[i].attachmentIdentifier.attachmentIcon);
                 disp.assignedColor = usingAttachmentColor;
                 disp.unAssignedColor = notUsingAttachmentColor;
                 disp.DeselectAll(atc, i);
@@ -471,41 +403,21 @@ namespace cowsins
 
         // OTHERS    /////////////////////////////////////////////////////////////////////////////////////////
 
-        public void UpdateXP(bool updatePanel)
+
+        public void UpdateXP()
         {
+            if (!ExperienceManager.instance.useExperience) return;
             currentLevel.text = (ExperienceManager.instance.playerLevel + 1).ToString();
             nextLevel.text = (ExperienceManager.instance.playerLevel + 2).ToString();
-
-            // Stop the previous fill coroutine to prevent overlap
-            StopCoroutine(FillExperienceBar());
-            StartCoroutine(FillExperienceBar());
-
-            if (updatePanel) UpdateXPPanel();
         }
 
         public void ChangeScene(int scene) => SceneManager.LoadScene(scene);
 
         public void UpdateCoins(int amount) => coinsText.text = CoinManager.Instance.coins.ToString();
 
-        // MOUSE VISIBILITY
-
-        public void UnlockMouse() => SetMouseLockState(false);
-        
-        public void LockMouse()
-        {
-            if (PauseMenu.isPaused) return;
-            SetMouseLockState(true);
-        }
-
-        public void SetMouseLockState(bool isLocked)
-        {
-            Cursor.lockState = isLocked ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = !isLocked;
-        }
-
         private void OnEnable()
         {
-            UIEvents.onExperienceCollected += UpdateXP;
+            addXP = UpdateXP;
             UIEvents.onHealthChanged += UpdateHealthUI;
             UIEvents.basicHealthUISetUp += HealthSetUp;
             if (barHealthDisplay) healthDisplayMethod += BarHealthDisplayMethod;
@@ -520,7 +432,6 @@ namespace cowsins
             UIEvents.onDashGained += RegainDash;
             UIEvents.onDashUsed += DashUsed;
             UIEvents.onEnemyHit += Hitmarker;
-            UIEvents.showDamagePopUp += AddDamagePopUp;
             UIEvents.onEnemyKilled += AddKillfeed;
             UIEvents.onDetectReloadMethod += DetectReloadMethod;
             UIEvents.onHeatRatioChanged += UpdateHeatRatio;
@@ -529,14 +440,8 @@ namespace cowsins
             UIEvents.setWeaponDisplay += SetWeaponDisplay;
             UIEvents.enableWeaponDisplay += EnableDisplay;
             UIEvents.onCoinsChange += UpdateCoins;
-            UIEvents.onExperienceCollected += UpdateXP;
-            UIEvents.onStartInspection += InspectionUIFadeIn;
-            UIEvents.onStopInspection += InspectionUIFadeOut; 
 
             interactUI.SetActive(false);
-
-            pauseMenu.OnPause += UnlockMouse;
-            pauseMenu.OnUnPause += LockMouse;
         }
         private void OnDisable()
         {
@@ -560,13 +465,7 @@ namespace cowsins
             UIEvents.disableWeaponUI = null;
             UIEvents.setWeaponDisplay = null;
             UIEvents.enableWeaponDisplay = null;
-            UIEvents.onCoinsChange = null;  
-            UIEvents.onExperienceCollected = null;
-            UIEvents.onStartInspection = null;
-            UIEvents.onStopInspection = null;
-
-            pauseMenu.OnPause -= UnlockMouse;
-            pauseMenu.OnUnPause -= LockMouse;
+            addXP = null;
         }
 
     }
@@ -586,7 +485,6 @@ namespace cowsins
             EditorGUILayout.BeginVertical();
             EditorGUILayout.Space(10f);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("playerMovement"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pauseMenu"));
             EditorGUILayout.Space(10f);
             currentTab = GUILayout.Toolbar(currentTab, tabs);
             EditorGUILayout.Space(10f);
@@ -691,17 +589,8 @@ namespace cowsins
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("displayEvents"));
                         if (myScript.displayEvents)
                         {
-                            EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serializedObject.FindProperty("killfeedContainer"));
                             EditorGUILayout.PropertyField(serializedObject.FindProperty("killfeedObject"));
-                            EditorGUILayout.PropertyField(serializedObject.FindProperty("damagePopUp"));
-                            if(myScript.DamagePopUp)
-                            {
-                                EditorGUI.indentLevel++;
-                                EditorGUILayout.PropertyField(serializedObject.FindProperty("xVariation"));
-                                EditorGUI.indentLevel--;
-                            }
-                            EditorGUI.indentLevel--;
                         }
 
                         break;

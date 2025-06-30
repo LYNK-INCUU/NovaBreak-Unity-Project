@@ -4934,18 +4934,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c69c57fde82f36c4e8d2f0a54a7566fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: 369f6c61-494a-4c27-bec2-73edf1b895fe
-  events:
-    onEnter:
-      m_PersistentCalls:
-        m_Calls: []
-    onStay:
-      m_PersistentCalls:
-        m_Calls: []
-    onExit:
-      m_PersistentCalls:
-        m_Calls: []
-  rememberTriggerState: 0
   minXp: 500
   maxXp: 1000
   pickUpSFX: {fileID: 8300000, guid: bc4c31f8d95dda74db5572d615ba98ef, type: 3}

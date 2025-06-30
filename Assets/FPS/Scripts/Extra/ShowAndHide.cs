@@ -5,20 +5,21 @@ namespace cowsins
     public class ShowAndHide : MonoBehaviour
     {
         [SerializeField] private GameObject panel;
-        [SerializeField] private InputActionReference toggleAction;
 
-        private void OnEnable()
+        private bool input, holding;
+
+        private void Awake() => holding = false;
+        private void Update()
         {
-            toggleAction.action.Enable();
-            toggleAction.action.performed += TogglePanel;
-        }
+            input = Keyboard.current.qKey.isPressed;
+            if (!input) holding = false;
 
-        private void OnDisable()
-        {
-            toggleAction.action.Disable();
-            toggleAction.action.performed -= TogglePanel;
+            if (input && !holding)
+            {
+                holding = true;
+                if (panel.activeSelf == false) panel.SetActive(true);
+                else panel.SetActive(false);
+            }
         }
-
-        private void TogglePanel(InputAction.CallbackContext context) => panel.SetActive(!panel.activeSelf);
     }
 }

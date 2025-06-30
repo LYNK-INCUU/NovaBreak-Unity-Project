@@ -475,11 +475,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 437864b4e9c49dd4396ad1a48e9ab848, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: ca9a77a4-c4bd-4b4e-b424-b83167ccc55b
   _name: 
   health: 0
-  shield: 0
   maxHealth: 10
+  shield: 0
   maxShield: 5
   destroyOnDie: 0
   deathEffect: {fileID: 0}
@@ -488,9 +487,17 @@ MonoBehaviour:
   showUI: 1
   showDamagePopUps: 1
   showKillFeed: 1
+  damagePopUp: {fileID: 7809040584024702416, guid: 606941a26ff1c814391ed7f66dfa9f5d, type: 3}
+  shieldColor: {r: 0.6839622, g: 1, b: 0.9232652, a: 0}
+  healthColor: {r: 0.972549, g: 0.6179246, b: 0.6179246, a: 0}
+  xVariation: 0.5
   dieSFX: {fileID: 8300000, guid: 9d2f7e0996d69eb4e81457cd0d4b4ff6, type: 3}
+  player: {fileID: 0}
   events:
     OnSpawn:
+      m_PersistentCalls:
+        m_Calls: []
+    OnShoot:
       m_PersistentCalls:
         m_Calls: []
     OnDamaged:

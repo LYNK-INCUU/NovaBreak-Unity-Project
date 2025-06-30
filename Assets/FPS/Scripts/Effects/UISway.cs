@@ -9,7 +9,10 @@ namespace cowsins
 
         private RectTransform rect;
 
-        private void Start() => rect = GetComponent<RectTransform>();
+        private void Start()
+        {
+            rect = GetComponent<RectTransform>();
+        }
 
         private void Update()
         {

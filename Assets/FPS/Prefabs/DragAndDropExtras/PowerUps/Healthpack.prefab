@@ -217,18 +217,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81e8a618957d19f4f801db0a06ffd309, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: ed713b33-ba08-4e13-9292-e4eaba1298ff
-  events:
-    onEnter:
-      m_PersistentCalls:
-        m_Calls: []
-    onStay:
-      m_PersistentCalls:
-        m_Calls: []
-    onExit:
-      m_PersistentCalls:
-        m_Calls: []
-  rememberTriggerState: 0
   reappears: 1
   reappearTime: 5
   Timer: {fileID: 4661580054922826307}

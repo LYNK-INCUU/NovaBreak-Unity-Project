@@ -1,8 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
-
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.UI;
@@ -21,27 +18,11 @@ namespace cowsins
             Other
         }
 
-        [SerializeField, Tooltip("Select the behaviour of the button.")]
-        private ButtonType buttonType;
-
-        [SerializeField, Tooltip("GameObject to enable.You can add a CanvasGroup to this object to seamlessly play a fade in effect")]
-        private GameObject gameObjectToEnable;
-
-        [SerializeField, Tooltip("GameObjects to disable. No fade effect is played on these.")]
-        private GameObject[] gameObjectsToDisable;
-
-        [SerializeField, Tooltip("Sound effect when hovered")]
-        private AudioClip hoverSFX;
-
-        [SerializeField, Tooltip("Sound effect when clicked")]
-        private AudioClip clickSFX;
-
-#if UNITY_EDITOR
-        [SerializeField, Tooltip("Scene asset to load (Editor only)")]
-        private SceneAsset sceneAsset;
-#endif
-
-        [SerializeField, HideInInspector] private string sceneName;
+        [SerializeField, Tooltip("Select the behaviour of the button.")] ButtonType buttonType;
+        [SerializeField, Tooltip("GameObject to enable.You can add a CanvasGroup to this object to seamlessly play a fade in effect")] private GameObject gameObjectToEnable;
+        [SerializeField, Tooltip("GameObjects to disable. No fade effect is played on these.")] private GameObject[] gameObjectsToDisable;
+        [SerializeField, Tooltip("")] private AudioClip clickSFX;
+        [SerializeField, Tooltip("")] private int sceneIndex;
 
         // Button Type Getter
         public ButtonType _ButtonType => buttonType;
@@ -56,7 +37,7 @@ namespace cowsins
         public void ButtonClick()
         {
             // Play sound
-            SoundManager.Instance?.PlaySound(clickSFX,0,0,false,0);
+            MainMenuManager.Instance?.PlaySound(clickSFX);
 
             // Handle GameObjects Transitions
             if (buttonType == ButtonType.GameObjectTransition)
@@ -74,33 +55,12 @@ namespace cowsins
                 // Enable the gameobject
                 gameObjectToEnable.SetActive(true);
             }
-            else if (buttonType == ButtonType.SceneTransition)
+            else if (buttonType == ButtonType.SceneTransition) // Handle Scene Transitions
             {
-                if (!string.IsNullOrEmpty(sceneName))
-                    SceneManager.LoadScene(sceneName);
-                else
-                    Debug.LogWarning("<color=red>[COWSINS]</color> Scene not assigned for CowsinsButton.", this);
+                MainMenuManager.Instance?.LoadScene(sceneIndex); // Load A new Scene (Async)
             }
         }
-        public override void OnPointerEnter(PointerEventData eventData)
-        {
-            if(interactable)
-                SoundManager.Instance?.PlaySound(hoverSFX, 0, 0, false, 0);
-            base.OnPointerEnter(eventData);
-        }
 
-
-#if UNITY_EDITOR
-        // Property to allow editor access
-        public SceneAsset _SceneAsset => sceneAsset;
-        protected override void OnValidate()
-        {
-            if (sceneAsset != null && sceneName != sceneAsset.name)
-                sceneName = sceneAsset.name;
-
-            base.OnValidate();  
-        }
-#endif
     }
 #if UNITY_EDITOR
     [CustomEditor(typeof(CowsinsButton))]
@@ -112,7 +72,6 @@ namespace cowsins
             serializedObject.Update();
             CowsinsButton myScript = target as CowsinsButton;
             EditorGUILayout.LabelField("COWSINS BUTTON", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("hoverSFX"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("clickSFX"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("buttonType"));
             if (myScript._ButtonType == CowsinsButton.ButtonType.GameObjectTransition)
@@ -122,10 +81,9 @@ namespace cowsins
             }
             else if (myScript._ButtonType == CowsinsButton.ButtonType.SceneTransition)
             {
-                SerializedProperty sceneAssetProp = serializedObject.FindProperty("sceneAsset");
-                EditorGUILayout.PropertyField(sceneAssetProp, new GUIContent("Scene To Load"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("sceneIndex"));
             }
-
+            
             EditorGUILayout.Space(10);
             GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
             EditorGUILayout.Space(10);

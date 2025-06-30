@@ -1,13 +1,13 @@
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
-
 namespace cowsins
 {
     [InitializeOnLoad]
     public static class DraggableButtonInSceneView
     {
         public static int buttonCount = 4;
+
 
         private const string ShowDraggableButtonKey = "Cowsins_ShowDraggableButton";
         public static bool showDraggableButton;
@@ -20,22 +20,16 @@ namespace cowsins
         private static Vector2 imageSize = new Vector2(21, 21);
         private static bool showMenu = false;
 
-        private static Texture2D option1Image, option2Image, option3Image, option4Image;
-
         public delegate void AddButtonDelegate(Rect menuRect);
         public static event AddButtonDelegate OnAddExternalButtons;
 
         static DraggableButtonInSceneView()
         {
+            // Gather Visibility State from Editor Prefs
             showDraggableButton = EditorPrefs.GetBool(ShowDraggableButtonKey, true);
             SceneView.duringSceneGui += OnSceneGUI;
 
             logoIcon = Resources.Load<Texture2D>("CustomEditor/LogoIcon");
-
-            option1Image = Resources.Load<Texture2D>("CustomEditor/FolderWeapon");
-            option2Image = Resources.Load<Texture2D>("CustomEditor/FolderSO");
-            option3Image = Resources.Load<Texture2D>("CustomEditor/AddWeapon");
-            option4Image = Resources.Load<Texture2D>("CustomEditor/Tutorials");
         }
 
         private static void OnSceneGUI(SceneView sceneView)
@@ -43,49 +37,64 @@ namespace cowsins
             if (!showDraggableButton)
                 return;
 
+            // Initialize button style
             if (buttonStyle == null)
+            {
                 buttonStyle = new GUIStyle(GUI.skin.button);
+            }
 
             Handles.BeginGUI();
 
             Rect buttonRect = new Rect(buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y);
 
-            HandleDragging(buttonRect, sceneView);
+            // Handle button interaction
+            if (Event.current.button != 0)
+                HandleDragging(buttonRect, sceneView);
 
-            if (Event.current.type == EventType.MouseDown && Event.current.button == 0 && buttonRect.Contains(Event.current.mousePosition))
+            // Toggle the Menu
+            if (GUI.Button(buttonRect, GUIContent.none, buttonStyle) && Event.current.button == 0)
             {
                 showMenu = !showMenu;
                 Event.current.Use();
-                sceneView.Repaint();
             }
 
-            GUI.Button(buttonRect, GUIContent.none, buttonStyle);
+            // Draw image 
             Rect imageRect = new Rect(
                 buttonRect.x + (buttonSize.x - imageSize.x) / 2,
                 buttonRect.y + (buttonSize.y - imageSize.y) / 2,
                 imageSize.x,
                 imageSize.y
             );
+
             GUI.DrawTexture(imageRect, logoIcon, ScaleMode.ScaleToFit);
 
-            // Draw the menu
+            // Draw the menu if it should be visible
             if (showMenu && !isDragging)
             {
-                Rect menuRect = new Rect(
-                    buttonRect.x + (buttonPosition.x < sceneView.position.width / 2 ? buttonSize.x : -40 * buttonCount),
+                // Determine menu position based on button position
+                DrawMenu(new Rect(
+                    buttonRect.x + (buttonPosition.x < 500 ? buttonSize.x : -40 * buttonCount),
                     buttonRect.y,
                     100,
                     buttonSize.y
-                );
-                DrawMenu(menuRect);
+                ), buttonPosition.x);
             }
-
             Handles.EndGUI();
+
+            sceneView.Repaint();
         }
 
-        private static void DrawMenu(Rect menuRect)
+        private static void DrawMenu(Rect menuRect, float buttonPosition)
         {
+            // Background
             GUI.Box(menuRect, GUIContent.none, GUI.skin.box);
+
+            // Textures for different options
+            Texture2D option1Image = Resources.Load<Texture2D>("CustomEditor/FolderWeapon");
+            Texture2D option2Image = Resources.Load<Texture2D>("CustomEditor/FolderSO");
+            Texture2D option3Image = Resources.Load<Texture2D>("CustomEditor/AddWeapon");
+            Texture2D option4Image = Resources.Load<Texture2D>("CustomEditor/Tutorials");
+
 
             GUIContent option1Content = new GUIContent(option1Image);
             GUIContent option2Content = new GUIContent(option2Image);
@@ -95,21 +104,44 @@ namespace cowsins
             float itemWidth = menuRect.width / 3;
             float itemHeight = menuRect.height;
 
+            // Button 1: Focus the Weapons folder
             if (GUI.Button(new Rect(GetButtonPosition(menuRect, 0), menuRect.y, itemWidth, itemHeight), option1Content))
             {
-                PingFolder("Assets/Cowsins/Prefabs/Weapons");
-            }
+                string folderPath = "Assets/Cowsins/Prefabs/Weapons";
 
+                Object folder = AssetDatabase.LoadAssetAtPath<Object>(folderPath);
+                if (folder != null)
+                {
+                    EditorGUIUtility.PingObject(folder);
+                    Selection.activeObject = folder;
+                }
+                else
+                {
+                    Debug.LogError($"Folder is empty or not found: {folderPath}. Did you remove or rename the Weapons Folder?");
+                }
+            }
+            // Button 2: Focus the Weapon_SO Folder
             if (GUI.Button(new Rect(GetButtonPosition(menuRect, 1), menuRect.y, itemWidth, itemHeight), option2Content))
             {
-                PingFolder("Assets/Cowsins/ScriptableObjects/Weapons");
-            }
+                string folderPath = "Assets/Cowsins/ScriptableObjects/Weapons";
+                Object folder = AssetDatabase.LoadAssetAtPath<Object>(folderPath);
+                if (folder != null)
+                {
+                    EditorGUIUtility.PingObject(folder);
+                    Selection.activeObject = folder;
+                }
+                else
+                {
+                    Debug.LogError($"Folder is empty or not found: {folderPath}. Did you remove or rename the ScriptableObjects Folder?");
+                }
 
+            }
+            // Open the WeaponCreatorAssistant
             if (GUI.Button(new Rect(GetButtonPosition(menuRect, 2), menuRect.y, itemWidth, itemHeight), option3Content))
             {
-                CustomTabEditorWindow.OpenWeaponsTab();
+                  CustomTabEditorWindow.OpenWeaponsTab();
             }
-
+            // Open Docs
             if (GUI.Button(new Rect(GetButtonPosition(menuRect, 3), menuRect.y, itemWidth, itemHeight), option4Content))
             {
                 Application.OpenURL("https://www.cowsins.com/");
@@ -118,85 +150,93 @@ namespace cowsins
             OnAddExternalButtons?.Invoke(menuRect);
         }
 
-        private static void PingFolder(string folderPath)
-        {
-            Object folder = AssetDatabase.LoadAssetAtPath<Object>(folderPath);
-            if (folder != null)
-            {
-                EditorGUIUtility.PingObject(folder);
-                Selection.activeObject = folder;
-            }
-            else
-            {
-                Debug.LogError($"Folder is empty or not found: {folderPath}. Did you remove or rename the folder?");
-            }
-        }
-
         private static void HandleDragging(Rect buttonRect, SceneView sceneView)
         {
-            Event e = Event.current;
-
-            if (e.type == EventType.MouseDown && e.button == 1 && buttonRect.Contains(e.mousePosition))
+            // Right mouse button down events 
+            if (Event.current.type == EventType.MouseDown && Event.current.button == 1 && buttonRect.Contains(Event.current.mousePosition))
             {
                 isDragging = true;
                 showMenu = false;
-                e.Use();
+                Event.current.Use();
             }
 
-            if (isDragging && e.type == EventType.MouseDrag)
+            // Handle dragging
+            if (isDragging && Event.current.type == EventType.MouseDrag)
             {
-                buttonPosition += e.delta;
+                buttonPosition += Event.current.delta;
+                // Limit button position to the Scene Window
                 ClampButtonPosition(sceneView);
-                e.Use();
-                sceneView.Repaint();
+                Event.current.Use();
             }
 
-            if (e.type == EventType.MouseUp && e.button == 1)
+            // Handle Stop Dragging and snapping
+            if (Event.current.type == EventType.MouseUp && Event.current.button == 1)
             {
                 isDragging = false;
                 SnapToNearestEdge(sceneView);
-                sceneView.Repaint();
             }
         }
 
         private static void ClampButtonPosition(SceneView sceneView)
         {
-            Vector2 viewSize = new Vector2(sceneView.position.width, sceneView.position.height);
-            buttonPosition.x = Mathf.Clamp(buttonPosition.x, 10, viewSize.x - buttonSize.x - 10);
-            buttonPosition.y = Mathf.Clamp(buttonPosition.y, 10, viewSize.y - buttonSize.y - 10);
+            // Get SceneView window size
+            Vector2 sceneViewSize = new Vector2(sceneView.position.width, sceneView.position.height);
+
+            // Calculate limits
+            float clampedX = Mathf.Clamp(buttonPosition.x, 10, sceneViewSize.x - buttonSize.x - 10);
+            float clampedY = Mathf.Clamp(buttonPosition.y, 10, sceneViewSize.y - buttonSize.y - 10);
+
+            buttonPosition = new Vector2(clampedX, clampedY);
         }
 
         private static void SnapToNearestEdge(SceneView sceneView)
         {
-            Vector2 viewSize = new Vector2(sceneView.position.width, sceneView.position.height);
+            // Get SceneView window size
+            Vector2 sceneViewSize = new Vector2(sceneView.position.width, sceneView.position.height);
 
-            float left = buttonPosition.x - 10;
-            float right = viewSize.x - (buttonPosition.x + buttonSize.x + 10);
-            float top = buttonPosition.y - 10;
-            float bottom = viewSize.y - (buttonPosition.y + buttonSize.y + 10);
+            // Calculate the distances to each edge
+            float distanceToLeft = buttonPosition.x - 10;
+            float distanceToRight = sceneViewSize.x - (buttonPosition.x + buttonSize.x + 10);
+            float distanceToTop = buttonPosition.y - 10;
+            float distanceToBottom = sceneViewSize.y - (buttonPosition.y + buttonSize.y + 10);
 
-            float min = Mathf.Min(left, right, top, bottom);
+            // Find the nearest edge
+            float minDistance = Mathf.Min(distanceToLeft, distanceToRight, distanceToTop, distanceToBottom);
 
-            if (min == left) buttonPosition.x = 10;
-            else if (min == right) buttonPosition.x = viewSize.x - buttonSize.x - 10;
-            else if (min == top) buttonPosition.y = 10;
-            else if (min == bottom) buttonPosition.y = viewSize.y - buttonSize.y - 10;
+            if (minDistance == distanceToLeft) // left edge
+            {
+                buttonPosition.x = 10;
+            }
+            else if (minDistance == distanceToRight) // right edge
+            {
+                buttonPosition.x = sceneViewSize.x - buttonSize.x - 10;
+            }
+            else if (minDistance == distanceToTop) // top edge
+            {
+                buttonPosition.y = 10;
+            }
+            else if (minDistance == distanceToBottom)//bottom edge
+            {
+                buttonPosition.y = sceneViewSize.y - buttonSize.y - 10;
+            }
         }
 
         public static float GetButtonPosition(Rect menuRect, int index)
         {
             float spacing = 5;
             float itemWidth = menuRect.width / 3;
-            float offset = buttonPosition.x < menuRect.width ? 5 : -4;
+            float offsetX = 3 * itemWidth + 4 * spacing;
+            float initialSpacing = buttonPosition.x < 500 ? 5 : -4;
 
-            return menuRect.x + spacing * (index + 1) + itemWidth * index + offset;
+            return menuRect.x + spacing * (index + 1) + itemWidth * index + initialSpacing;
         }
 
         public static void SetShowDraggableButton(bool value)
         {
             showDraggableButton = value;
-            EditorPrefs.SetBool(ShowDraggableButtonKey, value);
+            EditorPrefs.SetBool(ShowDraggableButtonKey, value); // Save the value to EditorPrefs
         }
     }
 }
+
 #endif

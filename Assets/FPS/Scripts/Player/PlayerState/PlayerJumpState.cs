@@ -16,9 +16,6 @@ namespace cowsins
             stats = _ctx.GetComponent<PlayerStats>();
             player.events.OnJump.Invoke();
             player.Jump();
-
-            InputManager.onStartGrapple += player.StartGrapple;
-            InputManager.onStopGrapple += player.StopGrapple;
         }
 
         public override void UpdateState()
@@ -30,11 +27,7 @@ namespace cowsins
 
         public override void FixedUpdateState() { }
 
-        public override void ExitState() 
-        {
-            InputManager.onStartGrapple -= player.StartGrapple;
-            InputManager.onStopGrapple -= player.StopGrapple;
-        }
+        public override void ExitState() { }
 
         public override void CheckSwitchState()
         {
@@ -77,7 +70,7 @@ namespace cowsins
                 return;
             }
 
-            bool canCrouch = InputManager.crouching && !player.wallRunning &&
+            bool canCrouch = InputManager.crouchingDown && !player.wallRunning &&
                              player.allowCrouch && player.allowCrouchWhileJumping;
 
             if (canCrouch)
@@ -96,7 +89,6 @@ namespace cowsins
 
         void HandleMovement()
         {
-            if(!stats.controllable) return;
             player.Movement(stats.controllable);
             player.Look();
         }
@@ -117,6 +109,7 @@ namespace cowsins
             if (canUnCrouch)
             {
                 // Invoke event and stop crouching when it is safe to do so
+                player.events.OnStopCrouch.Invoke();
                 player.StopCrouch();
             }
         }

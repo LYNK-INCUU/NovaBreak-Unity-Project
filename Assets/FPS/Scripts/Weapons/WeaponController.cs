@@ -4,32 +4,32 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using cowsins;
 using System.Collections.Generic;
-
 #if UNITY_EDITOR
 using UnityEditor.Presets;
 #endif
 
+#region others
+[System.Serializable]
+public class Events
+{
+    public UnityEvent OnShoot, OnReload, OnFinishReload, OnAim, OnAiming, OnStopAim, OnHit, OnInventorySlotChanged, OnEquipWeapon;
+}
+[System.Serializable]
+public class Effects
+{
+    public GameObject grassImpact, metalImpact, mudImpact, woodImpact, enemyImpact;
+}
+[System.Serializable]
+public class CustomShotMethods
+{
+    public Weapon_SO weapon;
+    public UnityEvent OnShoot;
+}
+#endregion
 namespace cowsins
 {
-    #region others
-    [System.Serializable]
-    public class Events
-    {
-        public UnityEvent OnShoot, onStartReload, OnFinishReload, OnAim, OnAiming, OnStopAim, OnHit, OnInventorySlotChanged, OnEquipWeapon, OnUnholsterWeapon;
-    }
-    [System.Serializable]
-    public class ImpactEffects
-    {
-        public GameObject grassImpact, metalImpact, mudImpact, woodImpact, enemyImpact;
-    }
-    [System.Serializable]
-    public class CustomShotMethods
-    {
-        public Weapon_SO weapon;
-        public UnityEvent OnShoot;
-    }
-    #endregion
     public class WeaponController : MonoBehaviour
     {
         //References
@@ -37,7 +37,7 @@ namespace cowsins
 
         public WeaponIdentification[] inventory;
 
-        public WeaponsInventoryUISlot[] weaponsInventoryUISlots;
+        public UISlot[] slots;
 
         public Weapon_SO weapon;
 
@@ -79,13 +79,13 @@ namespace cowsins
 
         [SerializeField] private bool canMelee;
 
-        public bool CanMelee => canMelee;
+        public bool CanMelee { get { return canMelee; } } 
 
         public bool isMeleeReady;
 
         [SerializeField] private GameObject meleeObject;
 
-        public GameObject MeleeObject => meleeObject;
+        public GameObject MeleeObject { get { return meleeObject; } }
 
         [SerializeField] private Transform meleeHeadBone;
 
@@ -104,31 +104,21 @@ namespace cowsins
         private float camShakeAmount;
 
         // Effects
-        public ImpactEffects effects;
+        public Effects effects;
 
         public Events events;
 
         [Tooltip("Used for weapons with custom shot method. Here, " +
             "you can attach your scriptable objects and assign the method you want to call on shoot. " +
             "Please only assign those scriptable objects that use custom shot methods, Otherwise it won´t work or you will run into issues.")]
-        public CustomShotMethods[] customPrimaryShot;
+        public CustomShotMethods[] customShot;
 
         public UnityEvent customMethod;
 
         // Internal Use
-        private CameraFOVManager cameraFOVManager;
-
-        private PlayerMovement playerMovement;
-
-        private PlayerMultipliers playerMultipliers;
-
         private int bulletsPerFire;
 
-#pragma warning disable CS0414
-        private bool canShoot;
-
-        public bool CanShoot => canShoot;
-#pragma warning restore CS0414
+        public bool canShoot;
 
         RaycastHit hit;
 
@@ -164,8 +154,6 @@ namespace cowsins
 
         private AudioClip fireSFX;
 
-        private bool isAddonAvailable = false;
-
         private void OnEnable()
         {
             // Subscribe to the method.
@@ -188,6 +176,7 @@ namespace cowsins
         private void Update()
         {
             HandleUI();
+            HandleAimingMotion();
             ManageWeaponMethodsInputs();
             HandleRecoil();
             HandleHeatRatio();
@@ -196,13 +185,7 @@ namespace cowsins
         private float aimingSpeed;
         public void Aim()
         {
-            if (!isAiming)
-            {
-                events.OnAim.Invoke(); // Invoke your custom method on stop aiming
-
-                aimingOutSpeed = (weapon != null) ? aimingSpeed : 2;
-                cameraFOVManager.SetFOV(weapon.aimingFOV, aimingOutSpeed);
-            }
+            if (!isAiming) events.OnAim.Invoke(); // Invoke your custom method on stop aiming
 
             isAiming = true;
 
@@ -223,12 +206,7 @@ namespace cowsins
         {
             if (weapon != null && weapon.applyBulletSpread) spread = weapon.spreadAmount;
 
-            if (isAiming)
-            {
-                events.OnStopAim.Invoke(); // Invoke your custom method on stop aiming
-                isAiming = false;
-                cameraFOVManager.SetFOV(playerMovement.wallRunning ? playerMovement.wallrunningFOV : playerMovement.normalFOV); 
-            }
+            if (isAiming) events.OnStopAim.Invoke(); // Invoke your custom method on stop aiming
 
             isAiming = false;
             aimingCamShakeMultiplier = 1;
@@ -268,6 +246,12 @@ namespace cowsins
 
         private float aimingOutSpeed;
 
+        private void HandleAimingMotion()
+        {
+            aimingOutSpeed = (weapon != null) ? aimingSpeed : 2;
+            if (isAiming && weapon != null) mainCamera.fieldOfView = Mathf.Lerp(mainCamera.fieldOfView, weapon.aimingFOV, aimingSpeed * Time.deltaTime);
+        }
+
         public void HandleHitscanProjectileShot()
         {
             foreach (var p in firePoint)
@@ -280,7 +264,7 @@ namespace cowsins
                 // We should  first check if we really wanna do this
                 if (weapon.showBulletShells && (int)weapon.shootStyle != 2)
                 {
-                    var bulletShell = PoolManager.Instance.GetFromPool(weapon.bulletGraphics, p.position, Quaternion.identity); 
+                    var bulletShell = Instantiate(weapon.bulletGraphics, p.position, mainCamera.transform.rotation);
                     Rigidbody shellRigidbody = bulletShell.GetComponent<Rigidbody>();
                     float torque = Random.Range(-15f, 15f);
                     Vector3 shellForce = mainCamera.transform.right * 5 + mainCamera.transform.up * 5;
@@ -289,7 +273,7 @@ namespace cowsins
                 }
             }
             if (weapon.timeBetweenShots == 0) SoundManager.Instance.PlaySound(fireSFX, 0, weapon.pitchVariationFiringSFX, true, 0);
-            Invoke(nameof(AllowShoot), fireRate);
+            Invoke(nameof(CanShoot), fireRate);
         }
 
         public void HandleMeleeShot() => StartCoroutine(HandleMeleeShotCoroutine());
@@ -298,7 +282,7 @@ namespace cowsins
             canShoot = false;
 
             // Determine if we want to add an effect for FOV
-            if (weapon.applyFOVEffectOnShooting) cameraFOVManager.ForceAddFOV(-weapon.FOVValueToSubtract);
+            if (weapon.applyFOVEffectOnShooting) mainCamera.fieldOfView = mainCamera.fieldOfView - weapon.FOVValueToSubtract;
 
             int randomIndex = Random.Range(1, weapon.amountOfShootAnimations + 1);
 
@@ -319,7 +303,7 @@ namespace cowsins
 
             MeleeAttack(weapon.attackRange, weapon.damagePerHit);
             CamShake.instance.ShootShake(weapon.camShakeAmount * aimingCamShakeMultiplier * crouchingCamShakeMultiplier);
-            Invoke(nameof(AllowShoot), weapon.attackRate);
+            Invoke(nameof(CanShoot), weapon.attackRate);
         }
 
         public void CustomShot()
@@ -328,7 +312,7 @@ namespace cowsins
             if (!weapon.continuousFire)
             {
                 canShoot = false;
-                Invoke(nameof(AllowShoot), fireRate);
+                Invoke(nameof(CanShoot), fireRate);
             }
 
             // Continuous fire
@@ -337,20 +321,17 @@ namespace cowsins
         private void SelectCustomShotMethod()
         {
             // Iterate through each item in the array
-            for (int i = 0; i < customPrimaryShot.Length; i++)
+            for (int i = 0; i < customShot.Length; i++)
             {
                 // Assign the on shoot event to the unity event to call it each time we fire
-                if (customPrimaryShot[i].weapon == weapon)
+                if (customShot[i].weapon == weapon)
                 {
-                    customMethod = customPrimaryShot[i].OnShoot;
+                    customMethod = customShot[i].OnShoot;
                     return;
                 }
             }
 
-            Debug.LogError("<color=red>[COWSINS]</color> <b><color=yellow>Appropriate weapon ScriptableObject not found!</color></b> " +
-                "Please configure the <b><color=cyan>Weapon ScriptableObject</color></b> and assign a suitable method " +
-                "in the <b><color=green>Custom Shot Array (Events tab)</color></b> to fix this error.");
-
+            Debug.LogError("Appropriate weapon scriptable object not found in the custom shot array (under the events tab). Please, configure the weapon scriptable object and the suitable method to fix this error");
         }
         private IEnumerator HandleShooting()
         {
@@ -382,7 +363,7 @@ namespace cowsins
                 if (weapon.applyFOVEffectOnShooting)
                 {
                     float fovAdjustment = isAiming ? weapon.AimingFOVValueToSubtract : weapon.FOVValueToSubtract;
-                    cameraFOVManager.ForceAddFOV(-fovAdjustment);
+                    mainCamera.fieldOfView -= fovAdjustment;
                 }
                 foreach (var p in firePoint)
                 {
@@ -410,7 +391,7 @@ namespace cowsins
         private void HitscanShot()
         {
             events.OnShoot.Invoke();
-            if (resizeCrosshair && UIController.instance.crosshair != null) UIController.instance.crosshair.Resize(weapon.crosshairResize * 10);
+            if (resizeCrosshair && UIController.instance.crosshair != null) UIController.instance.crosshair.Resize(weapon.crosshairResize * 100);
 
             Transform hitObj;
 
@@ -447,7 +428,7 @@ namespace cowsins
 
                 foreach (var p in firePoint)
                 {
-                    TrailRenderer trail = Instantiate(weapon.bulletTrail.gameObject, p.position, Quaternion.identity).GetComponent<TrailRenderer>();
+                    TrailRenderer trail = Instantiate(weapon.bulletTrail, p.position, Quaternion.identity);
 
                     StartCoroutine(SpawnTrail(trail, hit));
                 }
@@ -458,7 +439,7 @@ namespace cowsins
         {
             float time = 0;
             Vector3 startPos = trail.transform.position;
-            GameObject prefab = weapon.bulletTrail != null ? weapon.bulletTrail.gameObject : null;
+
             while (time < 1)
             {
                 trail.transform.position = Vector3.Lerp(startPos, hit.point, time);
@@ -468,7 +449,8 @@ namespace cowsins
             }
 
             trail.transform.position = hit.point;
-            PoolManager.Instance.ReturnToPool(trail.gameObject, prefab);
+
+            Destroy(trail.gameObject, trail.time);
         }
         /// <summary>
         /// projectile shooting spawns a projectile
@@ -569,7 +551,7 @@ namespace cowsins
         private void Hit(LayerMask layer, float damage, RaycastHit h, bool damageTarget)
         {
             events.OnHit.Invoke();
-            GameObject impactVFX = null, bulletHoleImpact = null;
+            GameObject impact = null, impactBullet = null;
 
             // Check the passed layer
             // If it matches any of the provided layers by FPS Engine, then:
@@ -578,35 +560,42 @@ namespace cowsins
             switch (layer)
             {
                 case int l when l == LayerMask.NameToLayer("Grass"):
-                    impactVFX = PoolManager.Instance.GetFromPool(effects.grassImpact, h.point, Quaternion.LookRotation(h.normal)); // Grass
-                    if (weapon != null) bulletHoleImpact = PoolManager.Instance.GetFromPool(weapon.bulletHoleImpact.grassImpact, h.point, Quaternion.identity);
+                    impact = Instantiate(effects.grassImpact, h.point, Quaternion.identity); // Grass
+                    impact.transform.rotation = Quaternion.LookRotation(h.normal);
+                    if (weapon != null)
+                        impactBullet = Instantiate(weapon.bulletHoleImpact.grassImpact, h.point, Quaternion.identity);
                     break;
                 case int l when l == LayerMask.NameToLayer("Metal"):
-                    impactVFX = PoolManager.Instance.GetFromPool(effects.metalImpact, h.point, Quaternion.LookRotation(h.normal)); // Metal
-                    if (weapon != null) bulletHoleImpact = PoolManager.Instance.GetFromPool(weapon.bulletHoleImpact.metalImpact, h.point, Quaternion.identity);
+                    impact = Instantiate(effects.metalImpact, h.point, Quaternion.identity); // Metal
+                    impact.transform.rotation = Quaternion.LookRotation(h.normal);
+                    if (weapon != null) impactBullet = Instantiate(weapon.bulletHoleImpact.metalImpact, h.point, Quaternion.identity);
                     break;
                 case int l when l == LayerMask.NameToLayer("Mud"):
-                    impactVFX = PoolManager.Instance.GetFromPool(effects.mudImpact, h.point, Quaternion.LookRotation(h.normal)); // Mud
-                    if (weapon != null) bulletHoleImpact = PoolManager.Instance.GetFromPool(weapon.bulletHoleImpact.grassImpact, h.point, Quaternion.identity);
+                    impact = Instantiate(effects.mudImpact, h.point, Quaternion.identity); // Mud
+                    impact.transform.rotation = Quaternion.LookRotation(h.normal);
+                    if (weapon != null) impactBullet = Instantiate(weapon.bulletHoleImpact.mudImpact, h.point, Quaternion.identity);
                     break;
                 case int l when l == LayerMask.NameToLayer("Wood"):
-                    impactVFX = PoolManager.Instance.GetFromPool(effects.woodImpact, h.point, Quaternion.LookRotation(h.normal)); // Wood
-                    if (weapon != null) bulletHoleImpact = PoolManager.Instance.GetFromPool(weapon.bulletHoleImpact.woodImpact, h.point, Quaternion.identity);
+                    impact = Instantiate(effects.woodImpact, h.point, Quaternion.identity); // Wood
+                    impact.transform.rotation = Quaternion.LookRotation(h.normal);
+                    if (weapon != null) impactBullet = Instantiate(weapon.bulletHoleImpact.woodImpact, h.point, Quaternion.identity);
                     break;
                 case int l when l == LayerMask.NameToLayer("Enemy"):
-                    impactVFX = PoolManager.Instance.GetFromPool(effects.enemyImpact, h.point, Quaternion.LookRotation(h.normal)); // Enemy
-                    if (weapon != null) bulletHoleImpact = PoolManager.Instance.GetFromPool(weapon.bulletHoleImpact.enemyImpact, h.point, Quaternion.identity);
+                    impact = Instantiate(effects.enemyImpact, h.point, Quaternion.identity); // Enemy
+                    impact.transform.rotation = Quaternion.LookRotation(h.normal);
+                    if (weapon != null) impactBullet = Instantiate(weapon.bulletHoleImpact.enemyImpact, h.point, Quaternion.identity);
                     break;
                 default:
-                    impactVFX = PoolManager.Instance.GetFromPool(effects.metalImpact, h.point, Quaternion.LookRotation(h.normal));
-                    if (weapon != null) bulletHoleImpact = PoolManager.Instance.GetFromPool(weapon.bulletHoleImpact.groundImpact, h.point, Quaternion.identity);
+                    impact = Instantiate(effects.metalImpact, h.point, Quaternion.identity);
+                    impact.transform.rotation = Quaternion.LookRotation(h.normal);
+                    if (weapon != null) impactBullet = Instantiate(weapon.bulletHoleImpact.groundIMpact, h.point, Quaternion.identity);
                     break;
             }
 
-            if (h.collider != null && bulletHoleImpact != null)
+            if (h.collider != null && impactBullet != null)
             {
-                bulletHoleImpact.transform.rotation = Quaternion.LookRotation(h.normal);
-                bulletHoleImpact.transform.SetParent(h.collider.transform);
+                impactBullet.transform.rotation = Quaternion.LookRotation(h.normal);
+                impactBullet.transform.SetParent(h.collider.transform);
             }
 
             // Apply damage
@@ -634,18 +623,11 @@ namespace cowsins
         }
 
 
-        private void AllowShoot() => canShoot = true;
+        private void CanShoot() => canShoot = true;
 
         private void FinishedSelection() => selectingWeapon = false;
 
         public void StartReload() => StartCoroutine(reload());
-
-        public void StopReload()
-        {
-            reloading = false;
-            canShoot = true;
-            StopCoroutine(reload());
-        }
 
         /// <summary>
         /// Handle Reloading
@@ -653,9 +635,6 @@ namespace cowsins
         private IEnumerator DefaultReload()
         {
             reloading = true;
-            // Run custom event
-            events.onStartReload.Invoke();
-
             yield return new WaitForSeconds(autoReload && id.bulletsLeftInMagazine <= 0 ? autoReloadDelay : .1f);
 
             // Play reload sound
@@ -666,6 +645,9 @@ namespace cowsins
 
             // Wait reloadTime seconds, assigned in the weapon scriptable object.
             yield return new WaitForSeconds(reloadTime);
+
+            // Reload has finished
+            events.OnFinishReload.Invoke();
 
             canShoot = true;
             if (!reloading) yield break;
@@ -704,8 +686,9 @@ namespace cowsins
                     }
                 }
             }
-            // Reload has finished
-            events.OnFinishReload.Invoke();
+
+            // Run custom event
+            events.OnReload.Invoke();
         }
 
         private IEnumerator OverheatReload()
@@ -716,7 +699,7 @@ namespace cowsins
             float waitTime = weapon.cooledPercentageAfterOverheat;
 
             // Stop being able to shoot, prevents from glitches
-            CancelInvoke(nameof(AllowShoot));
+            CancelInvoke(nameof(CanShoot));
 
             // Wait until the heat ratio is appropriate to keep shooting
             yield return new WaitUntil(() => id.heatRatio <= waitTime);
@@ -792,7 +775,6 @@ namespace cowsins
 
             // Grab the modifiers for the custom set of attachments.
             GetAttachmentsModifiers();
-            GetWeaponWeightModifier();
 
             weaponAnimator.StopWalkAndRunMotion();
             weaponAnimator.SetParentConstraintSource(id.HeadBone ?? null);
@@ -825,16 +807,7 @@ namespace cowsins
 
             if ((int)weapon.shootStyle == 2) UIEvents.onDetectReloadMethod?.Invoke(false, false);
 
-            // Register Pools
-            foreach (var effect in new[] { weapon.bulletHoleImpact.grassImpact, weapon.bulletHoleImpact.metalImpact, weapon.bulletHoleImpact.mudImpact, weapon.bulletHoleImpact.woodImpact,
-                     weapon.bulletHoleImpact.enemyImpact })
-            {
-                if(effect) PoolManager.Instance.RegisterPool(effect, PoolManager.Instance.WeaponEffectsSize);
-            }
-            if (weapon.bulletGraphics) PoolManager.Instance.RegisterPool(weapon.bulletGraphics.gameObject, PoolManager.Instance.BulletGraphicsSize);
-
             UIEvents.setWeaponDisplay?.Invoke(weapon);
-            events.OnUnholsterWeapon.Invoke();
         }
 
         /// <summary>
@@ -911,7 +884,7 @@ namespace cowsins
 
             // Finally unholster the weapon but dont play any animation.
             // We require to unholster the weapons for every setting to work properly.
-            if(currentWeapon == index) UnHolster(inventory[currentWeapon].gameObject, false);
+            UnHolster(inventory[currentWeapon].gameObject, false);
         }
 
 
@@ -927,14 +900,6 @@ namespace cowsins
                 GetComponent<InteractManager>().DropAttachment(currentAttachment, false);
             // Enable new attachment
             newAttachment.gameObject.SetActive(true);
-        }
-
-        public void GetWeaponWeightModifier()
-        {
-            // Only apply the weight modification if the Inventory Pro Manager add-on is not available. If it is available, the weight of the player is calculated by the inventory
-            if (isAddonAvailable) return;
-
-            playerMultipliers.playerWeightMultiplier = weapon != null ? weapon.weightMultiplier : 1;
         }
         private void GetAttachmentsModifiers()
         {
@@ -970,14 +935,14 @@ namespace cowsins
 
             // Make an array where we will store all the attachment types
             Attachment[] attachments = new Attachment[] {
-                inventory[currentWeapon].barrel,
-                inventory[currentWeapon].scope,
-                inventory[currentWeapon].stock,
-                inventory[currentWeapon].grip,
-                inventory[currentWeapon].magazine,
-                inventory[currentWeapon].flashlight,
-                inventory[currentWeapon].laser
-            };
+        inventory[currentWeapon].barrel,
+        inventory[currentWeapon].scope,
+        inventory[currentWeapon].stock,
+        inventory[currentWeapon].grip,
+        inventory[currentWeapon].magazine,
+        inventory[currentWeapon].flashlight,
+        inventory[currentWeapon].laser
+    };
 
             // Iterate through each attachment and update the modifiers
             foreach (Attachment attachment in attachments)
@@ -996,6 +961,7 @@ namespace cowsins
 
         private void HandleUI()
         {
+
             // If we dont own a weapon yet, do not continue
             if (weapon == null)
             {
@@ -1052,14 +1018,14 @@ namespace cowsins
         private void CreateInventoryUI()
         {
             // Adjust the inventory size 
-            weaponsInventoryUISlots = new WeaponsInventoryUISlot[inventorySize];
+            slots = new UISlot[inventorySize];
             int j = 0; // Control variable
             while (j < inventorySize)
             {
                 // Load the slot, instantiate it and set it to the slots array
-                var slotGO = Instantiate(Resources.Load("InventoryUISlot"), Vector3.zero, Quaternion.identity, UIController.instance.inventoryContainer.transform) as GameObject;
-                WeaponsInventoryUISlot slot = slotGO.GetComponent<WeaponsInventoryUISlot>();
-                weaponsInventoryUISlots[j] = slot;
+                var slot = Instantiate(Resources.Load("InventoryUISlot"), Vector3.zero, Quaternion.identity, UIController.instance.inventoryContainer.transform) as GameObject;
+                slot.GetComponent<UISlot>().id = j;
+                slots[j] = slot.GetComponent<UISlot>();
                 j++;
             }
         }
@@ -1073,7 +1039,6 @@ namespace cowsins
                                                 // Change slot
             if (InputManager.scrolling > 0 || InputManager.previousweapon)
             {
-                UIController.instance.StartFadingInventory();
                 ForceAimReset(); // Move Weapon back to the original position
                 if (currentWeapon < inventorySize - 1)
                 {
@@ -1083,7 +1048,6 @@ namespace cowsins
             }
             if (InputManager.scrolling < 0 || InputManager.nextweapon)
             {
-                UIController.instance.StartFadingInventory();
                 ForceAimReset(); // Move Weapon back to the original position
                 if (currentWeapon > 0)
                 {
@@ -1123,16 +1087,17 @@ namespace cowsins
                     }
                 }
             }
-            GetWeaponWeightModifier();
 
             // Handle the UI Animations
-            foreach (WeaponsInventoryUISlot slot in weaponsInventoryUISlots)
+            foreach (UISlot slot in slots)
             {
-                slot.Deselect(); 
+                slot.transform.localScale = slot.initScale;
+                slot.GetComponent<CanvasGroup>().alpha = .2f;
             }
-            weaponsInventoryUISlots[currentWeapon].Select(); 
+            slots[currentWeapon].transform.localScale = slots[currentWeapon].transform.localScale * 1.2f;
+            slots[currentWeapon].GetComponent<CanvasGroup>().alpha = 1;
 
-            CancelInvoke(nameof(AllowShoot));
+            CancelInvoke(nameof(CanShoot));
 
             events.OnEquipWeapon.Invoke(); // Invoke your custom method
 
@@ -1153,13 +1118,6 @@ namespace cowsins
 
         public void InstantiateWeapon(Weapon_SO newWeapon, int inventoryIndex, int? _bulletsLeftInMagazine, int? _totalBullets)
         {
-            if (newWeapon == null)
-            {
-                Debug.LogError("<color=red>[COWSINS]</color> <b><color=yellow>The weapon to instantiate is null!</color></b> " +
-                               "Please ensure the proper <b><color=cyan>Weapon_SO</color></b> is assigned.");
-                return;
-            }
-
             // Instantiate Weapon
             var weaponPicked = Instantiate(newWeapon.weaponObject, weaponHolder);
             weaponPicked.transform.localPosition = newWeapon.weaponObject.transform.localPosition;
@@ -1195,8 +1153,8 @@ namespace cowsins
                 : newWeapon.magazineSize);
 
             //UI
-            weaponsInventoryUISlots[inventoryIndex].SetWeapon(newWeapon);
-
+            slots[inventoryIndex].weapon = newWeapon;
+            slots[inventoryIndex].GetImage();
 #if UNITY_EDITOR
             UIController.instance.crosshair.GetComponent<CrosshairShape>().currentPreset = weapon?.crosshairPreset;
             if (UIController.instance.crosshair.GetComponent<CrosshairShape>().currentPreset)
@@ -1252,14 +1210,12 @@ namespace cowsins
             return (null, -1);
         }
 
-        public void ReleaseCurrentWeapon() => ReleaseWeapon(currentWeapon);
-
-        public void ReleaseWeapon(int index)
+        public void ReleaseCurrentWeapon()
         {
-            Destroy(inventory[index].gameObject);
-            inventory[index] = null;
+            Destroy(inventory[currentWeapon].gameObject);
+            inventory[currentWeapon] = null;
             weapon = null;
-            weaponsInventoryUISlots[index].SetWeapon(null);
+            slots[currentWeapon].weapon = null;
         }
         private float GetDistanceDamageReduction(Transform target)
         {
@@ -1327,8 +1283,6 @@ namespace cowsins
 
         public void ToggleFlashLight()
         {
-            if (inventory[currentWeapon]?.flashlight == null) return;
-
             Flashlight flashlightComponent = inventory[currentWeapon].flashlight.GetComponent<Flashlight>();
 
             GameObject lightSource = flashlightComponent.lightSource.gameObject;
@@ -1347,22 +1301,14 @@ namespace cowsins
 
         private void InitialSettings()
         {
-            playerMovement = GetComponent<PlayerMovement>();
-            playerMultipliers = GetComponent<PlayerMultipliers>();
             stats = GetComponent<PlayerStats>();
             weaponAnimator = GetComponent<WeaponAnimator>();
             multipliers = GetComponent<PlayerMultipliers>();    
             inventory = new WeaponIdentification[inventorySize];
-            cameraFOVManager = mainCamera.GetComponent<CameraFOVManager>(); 
             currentWeapon = 0;
             canShoot = true;
             mainCamera.fieldOfView = GetComponent<PlayerMovement>().normalFOV;
             isMeleeReady = true;
-            isAddonAvailable = AddonManager.instance.isInventoryAddonAvailable;
-
-            // Register Pool
-            foreach (var effect in new[] { effects.grassImpact, effects.metalImpact, effects.mudImpact, effects.woodImpact, effects.enemyImpact })
-                PoolManager.Instance.RegisterPool(effect, PoolManager.Instance.WeaponEffectsSize);
         }
     }
 }

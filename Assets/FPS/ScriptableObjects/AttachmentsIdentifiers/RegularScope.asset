@@ -12,11 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ed8e9adcfedb5d4085ce56cbdf53865, type: 3}
   m_Name: RegularScope
   m_EditorClassIdentifier: 
-  _name: Regular Scope
-  icon: {fileID: 21300000, guid: 46837b1c4ab0e9f42bb6444ef82ac6a2, type: 3}
+  attachmentName: Scope
+  attachmentIcon: {fileID: 21300000, guid: 46837b1c4ab0e9f42bb6444ef82ac6a2, type: 3}
   pickUpGraphics: {fileID: 7864317697545707849, guid: e884169fc29faad4184268ea770d8fe2, type: 3}
-  maxStack: 1
-  itemSize: {x: 1, y: 1}
-  irregularItemIcon: {fileID: 0}
-  applyWeight: 0
-  weightMultiplier: 1

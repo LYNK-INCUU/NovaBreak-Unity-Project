@@ -7,7 +7,6 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using TMPro;
-using System.Text;
 namespace cowsins
 {
     public class GetGameInformation : MonoBehaviour
@@ -15,7 +14,7 @@ namespace cowsins
         //FPS
         public bool showFPS;
 
-        public bool showAverageFrameRate, showMaximumFrameRate;
+        public bool showMinimumFrameRate, showMaximumFrameRate;
 
         [SerializeField, Range(.01f, 1f)] private float fpsRefreshRate;
 
@@ -25,12 +24,9 @@ namespace cowsins
 
         private float fpsTimer;
 
-        private float fps, avgFPS, maxFps;
+        private float fps, minFps, maxFps;
 
         private string text = "";
-
-        private int lastFrameIndex;
-        private float[] frameDeltaTimeArray;
 
         private void Start()
         {
@@ -39,57 +35,36 @@ namespace cowsins
             else
                 Destroy(fpsObject);
 
-            frameDeltaTimeArray = new float[50];
+            minFps = float.MaxValue;
         }
 
         private void Update()
         {
             if (!showFPS) return;
 
-            frameDeltaTimeArray[lastFrameIndex] = Time.deltaTime;
-            lastFrameIndex = (lastFrameIndex + 1) % frameDeltaTimeArray.Length;
-            fps = CalculateFramerate();
-
             fpsTimer -= Time.deltaTime;
 
             if (fpsTimer <= 0)
             {
                 text = "";
-                avgFPS = Time.frameCount / Time.time;
+                fps = 1.0f / Time.deltaTime;
 
+                if (fps < minFps) minFps = fps;
                 if (fps > maxFps) maxFps = fps;
 
                 fpsTimer = fpsRefreshRate;
 
-                StringBuilder sb = new StringBuilder();
+                text += "Current FPS: " + GetColoredFPSText(fps) + "\n";
 
-                // Append the current FPS
-                sb.Append("Current FPS: ").Append(GetColoredFPSText(fps)).AppendLine();
+                if (showMinimumFrameRate)
+                    text += "Min FPS: " + GetColoredFPSText(minFps) + "\n";
 
-                // Append the avg FPS if required
-                if (showAverageFrameRate)
-                    sb.Append("Avg FPS: ").Append(GetColoredFPSText(avgFPS)).AppendLine();
-
-                // Append the maximum FPS if required
                 if (showMaximumFrameRate)
-                    sb.Append("Max FPS: ").Append(GetColoredFPSText(maxFps));
-
-                // Convert the StringBuilder to a string when needed
-                text = sb.ToString();
+                    text += "Max FPS: " + GetColoredFPSText(maxFps);
 
                 fpsObject.text = text;
             }
 
-        }
-
-        private float CalculateFramerate()
-        {
-            float total = 0;
-            foreach (float deltaTime in frameDeltaTimeArray)
-            {
-                total += deltaTime;
-            }
-            return frameDeltaTimeArray.Length / total;
         }
 
         private string GetColoredFPSText(float fps)
@@ -129,7 +104,7 @@ namespace cowsins
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("fpsRefreshRate"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("fpsObject"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("showAverageFrameRate"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("showMinimumFrameRate"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("showMaximumFrameRate"));
             }
             EditorGUILayout.Space(10f);

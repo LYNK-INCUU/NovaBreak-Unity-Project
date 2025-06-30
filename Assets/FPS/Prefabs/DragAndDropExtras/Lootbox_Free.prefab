@@ -331,15 +331,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9eeb544160b1d7148a8e850388154f9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: c9990b49-7769-4213-81fc-d4e6c1095dce
   interactable: 0
   interactText: Open
-  instantInteraction: 0
-  interactableEvents:
-    OnInteract:
-      m_PersistentCalls:
-        m_Calls: []
-  price: 0
   loot:
   - {fileID: 3428643961104354711, guid: 1d08260f365dfbf4e8ea905112f1419a, type: 3}
   - {fileID: 39021870808220807, guid: 59f209a6517268e4c899fed4b1697440, type: 3}
@@ -347,6 +340,7 @@ MonoBehaviour:
   - {fileID: 5371435304333366952, guid: d91263601b783ae4d93efe5d17363bf3, type: 3}
   - {fileID: 3694730247264947185, guid: a190b13acef388445887fce9f1b1528f, type: 3}
   - {fileID: 7403018159610325256, guid: 8eb2324d906ba4b479b12c9936d11340, type: 3}
+  price: 0
   delayToReceiveLoot: 0.2
   minSpawnAngle: -30
   maxSpawnAngle: 30

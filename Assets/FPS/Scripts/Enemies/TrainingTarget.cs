@@ -5,18 +5,10 @@ namespace cowsins
     {
         [SerializeField] private float timeToRevive;
 
-        private Animator animator;
-
-        public override void Start()
-        {
-            animator = GetComponent<Animator>(); 
-            base.Start();
-        }
-
         public override void Damage(float damage, bool isHeadshot)
         {
             if (isDead) return;
-            animator.Play("Target_Hit");
+            GetComponent<Animator>().Play("Target_Hit");
             base.Damage(damage, isHeadshot);
         }
         public override void Die()
@@ -33,14 +25,15 @@ namespace cowsins
 
             if (transform.parent.GetComponent<CompassElement>() != null) transform.parent.GetComponent<CompassElement>().Remove();
 
-            animator.Play("Target_Die");
+            GetComponent<Animator>().Play("Target_Die");
+
 
             SoundManager.Instance.PlaySound(dieSFX, 0, 0, false, 0);
         }
         private void Revive()
         {
             isDead = false;
-            animator.Play("Target_Revive");
+            GetComponent<Animator>().Play("Target_Revive");
             health = maxHealth;
             shield = maxShield;
 
@@ -48,18 +41,6 @@ namespace cowsins
             if (healthSlider != null) healthSlider.gameObject.SetActive(true);
 
             if (transform.parent.GetComponent<CompassElement>() != null) transform.parent.GetComponent<CompassElement>().Add();
-
-#if SAVE_LOAD_ADD_ON
-            StoreData();
-#endif
         }
-
-#if SAVE_LOAD_ADD_ON
-        public override void LoadedState()
-        {
-            if (health <= 0)
-                Revive();
-        }
-#endif
     }
 }

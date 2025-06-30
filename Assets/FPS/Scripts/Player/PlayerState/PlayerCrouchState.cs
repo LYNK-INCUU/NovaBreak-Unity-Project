@@ -35,7 +35,7 @@ namespace cowsins
             if (InputManager.crouching)
             {
                 _ctx.transform.localScale = Vector3.MoveTowards(_ctx.transform.localScale, player.crouchScale, Time.deltaTime * player.crouchTransitionSpeed * 1.5f);
-                if (player.crouchCancelMethod == PlayerMovement.CrouchCancelMethod.Smooth) player.SmoothCrouchCancel();
+                if (player.crouchCancelMethod == PlayerMovement.CrouchCancelMethod.Smooth) player.currentSpeed = Mathf.MoveTowards(player.currentSpeed, player.crouchSpeed, Time.deltaTime * player.crouchTransitionSpeed * 1.5f);
             }
             player.isCrouching = true;
             CheckSwitchState();
@@ -46,11 +46,7 @@ namespace cowsins
             HandleMovement();
         }
 
-        public override void ExitState() 
-        { 
-            weaponController.ResetCrouchCamShakeMultiplier();
-            player.events.OnStopCrouch.Invoke(); // Invoke your own method on the moment you are standing up NOT WHILE YOU ARE NOT CROUCHING
-        }
+        public override void ExitState() { weaponController.ResetCrouchCamShakeMultiplier(); }
 
         public override void CheckSwitchState()
         {
@@ -87,6 +83,7 @@ namespace cowsins
             }
             if (canUnCrouch)
             {
+                player.events.OnStopCrouch.Invoke(); // Invoke your own method on the moment you are standing up NOT WHILE YOU ARE NOT CROUCHING
                 _ctx.GetComponent<PlayerMovement>().StopCrouch();
                 if (_ctx.transform.localScale == player.PlayerScale)
                     SwitchState(_factory.Default());

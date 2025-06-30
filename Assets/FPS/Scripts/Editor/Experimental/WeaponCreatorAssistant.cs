@@ -5,6 +5,7 @@ using UnityEditor.Presets;
 using UnityEditor.Animations;
 namespace cowsins
 {
+
     public class WeaponCreatorAssistant : EditorWindow
     {
         private string weaponName = "NewWeapon";
@@ -257,9 +258,7 @@ namespace cowsins
             }
 
             // Add Animator to the instantiatedWeaponModel
-            Animator newAnimator = instantiatedWeaponModel.GetComponent<Animator>();
-            if (newAnimator == null)
-                newAnimator = instantiatedWeaponModel.AddComponent<Animator>();
+            Animator newAnimator = instantiatedWeaponModel.AddComponent<Animator>();
 
             string originalControllerPath = "Assets/Cowsins/Animations/Weapons/BlankWeaponAnimatorTemplate.controller";
 

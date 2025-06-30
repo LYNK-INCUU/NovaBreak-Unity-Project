@@ -12,16 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d01ed731769af95429c32ba164942b3e, type: 3}
   m_Name: RocketLauncher
   m_EditorClassIdentifier: 
-  _name: Rocket Launcher
-  description: 
-  icon: {fileID: 21300000, guid: db9dd1ce0b703cb428044d1d34eadf3e, type: 3}
-  pickUpGraphics: {fileID: 2092819957812016947, guid: 8a7fc9801d722d2438c5a61436ca30a1, type: 3}
-  maxStack: 1
-  itemSize: {x: 3, y: 1}
-  irregularItemIcon: {fileID: 21300000, guid: 6d7eabb4912bbd148808823d1bf33de2, type: 3}
-  applyWeight: 1
-  weightMultiplier: 0.8
   weaponObject: {fileID: 4366474878721369578, guid: 746a44ab2ff89b540aef7873f223835d, type: 3}
+  _name: Rocket Launcher
+  pickUpGraphics: {fileID: 2092819957812016947, guid: 8a7fc9801d722d2438c5a61436ca30a1, type: 3}
+  icon: {fileID: 21300000, guid: db9dd1ce0b703cb428044d1d34eadf3e, type: 3}
   shootStyle: 1
   shootMethod: 1
   holdProgressSpeed: 454
@@ -60,8 +54,10 @@ MonoBehaviour:
   crosshairResize: 40
   crosshairPreset: {fileID: 2655988077585873504, guid: 339dc1e687484c544b2b203166ea9a5f, type: 2}
   applyBulletSpread: 1
+  applyWeight: 1
   spreadAmount: 0
   aimSpreadAmount: 0.01
+  weightMultiplier: 1
   applyRecoil: 1
   recoilX:
     serializedVersion: 2
@@ -145,7 +141,7 @@ MonoBehaviour:
   showBulletShells: 1
   bulletHoleImpact:
     defaultImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
-    groundImpact: {fileID: 0}
+    groundIMpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
     grassImpact: {fileID: 2462405574108921655, guid: 96098beba501e3247b9452e9455f6189, type: 3}
     enemyImpact: {fileID: 2462405574108921655, guid: 8c95f7225cf58144d86befe4ddc08efb, type: 3}
     metalImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
@@ -158,6 +154,7 @@ MonoBehaviour:
   audioSFX:
     shooting:
     - {fileID: 8300000, guid: 31fe3c9004e2e0343a96a4f962909f5e, type: 3}
+    firing: {fileID: 8300000, guid: 31fe3c9004e2e0343a96a4f962909f5e, type: 3}
     holster: {fileID: 8300000, guid: b2c939ee2ab26a14b81d51fe66235d2f, type: 3}
     unholster: {fileID: 8300000, guid: b2c939ee2ab26a14b81d51fe66235d2f, type: 3}
     reload: {fileID: 8300000, guid: 1f0d11e2f60ab0942af5c83cefe099f2, type: 3}
@@ -169,8 +166,8 @@ MonoBehaviour:
   camShakeAimMultiplier: 0.8
   camShakeCrouchMultiplier: 0.8
   applyFOVEffectOnShooting: 1
-  FOVValueToSubtract: 4
-  AimingFOVValueToSubtract: 2
+  FOVValueToSubtract: 0
+  AimingFOVValueToSubtract: 0
   amountOfShootAnimations: 0
   bulletTrail: {fileID: 1436881700163988445, guid: 72fbb691dea891c45a6caa10b437b857, type: 3}
   damagePerHit: 12

@@ -1,3 +1,6 @@
+/// <summary>
+/// This script belongs to cowsins™ as a part of the cowsins´ FPS Engine. All rights reserved. 
+/// </summary>
 using UnityEngine.UI;
 using UnityEngine;
 namespace cowsins

@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 namespace cowsins
 {
-    public partial class Trigger : Identifiable
+    public class Trigger : MonoBehaviour
     {
         [System.Serializable]
         public class Events
@@ -13,20 +13,12 @@ namespace cowsins
 
         [SerializeField] private Events events;
 
-        [SaveField] protected bool triggered;
-        [SerializeField] private bool rememberTriggerState;
-
         private void OnTriggerEnter(Collider other)
         {
-            if (other.CompareTag("Player") && !triggered)
+            if (other.CompareTag("Player"))
             {
                 events.onEnter?.Invoke();
-                triggered = true;
-                TriggerEnter(other);
-#if SAVE_LOAD_ADD_ON
-                SaveTrigger();
-                LoadedState(); 
-#endif
+                TriggerEnter(other);    
             }
         }
         private void OnTriggerStay(Collider other)
@@ -43,10 +35,6 @@ namespace cowsins
             {
                 events.onExit?.Invoke();
                 TriggerExit(other);
-                if(!rememberTriggerState) triggered = false;
-#if SAVE_LOAD_ADD_ON
-                StoreData();
-#endif
             }
         }
 
@@ -63,4 +51,5 @@ namespace cowsins
 
         }
     }
+
 }

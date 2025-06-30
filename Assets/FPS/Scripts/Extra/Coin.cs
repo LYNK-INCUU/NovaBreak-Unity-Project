@@ -16,14 +16,6 @@ namespace cowsins
             SoundManager.Instance.PlaySound(collectCoinSFX, 0, 1, false, 0);
             Destroy(this.gameObject);
         }
-
-
-#if SAVE_LOAD_ADD_ON
-        public override void LoadedState()
-        {
-            Destroy(this.gameObject);
-        }
-#endif
     }
 
 }

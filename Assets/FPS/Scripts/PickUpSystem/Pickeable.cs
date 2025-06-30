@@ -6,8 +6,9 @@ using UnityEngine;
 using UnityEngine.Events;
 namespace cowsins
 {
-    public abstract class Pickeable : Interactable
+    public class Pickeable : Interactable
     {
+
         [System.Serializable]
         public class Events
         {
@@ -34,18 +35,13 @@ namespace cowsins
 
         private float timer = 0f;
 
-        private Rigidbody rb;
 
-        public virtual void Awake()
+        public virtual void Start()
         {
             pickeable = false;
             obj = transform.Find("Graphics");
-            rb = GetComponent<Rigidbody>();
         }
-        private void Update()
-        {
-            if (rotates || translates) Movement();
-        }
+        private void Update() => Movement();
 
         public override void Interact(Transform player) => events.OnPickUp.Invoke();
 
@@ -54,38 +50,30 @@ namespace cowsins
         /// </summary>
         private void Movement()
         {
-            rb?.AddForce(Vector3.down * 15, ForceMode.Force);
-            if (obj == null) return;
-
-            // Rotation
-            if (rotates)
-                obj.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
-
-            // Translation (Up and Down Motion)
-            if (translates)
+            GetComponent<Rigidbody>()?.AddForce(Vector3.down * 15, ForceMode.Force);
+            if (!rotates && !translates) return;
+            if (rotates) obj.Rotate(Vector3.up * rotationSpeed * Time.deltaTime); // Rotate over time
+            if (translates) // Go up and down
             {
-                timer += Time.deltaTime * translationSpeed;
+                timer += Time.deltaTime * translationSpeed; // Timer that controls the movement
                 float translateMotion = Mathf.Sin(timer) / 7000f;
-                Vector3 localPos = obj.localPosition;
-                localPos.y += translateMotion;
-                obj.localPosition = localPos;
+                obj.transform.localPosition = new Vector3(obj.transform.localPosition.x, obj.transform.localPosition.y + translateMotion, obj.transform.localPosition.z);
             }
         }
 
         public virtual void Drop(WeaponController wcon, Transform orientation)
         {
             dropped = true;
-
-            Vector3 force = orientation.forward * 4;
-
-            if (rb == null)
-            {
-                Debug.LogError("<color=red>[COWSINS]</color> <b><color=yellow>Rigidbody component not found!</color></b> " +
-                    "Please assign a <b><color=cyan>Rigidbody Component</color></b> to your Pickeable Object to fix this error.", this);
-            }
-            else rb.AddForce(force, ForceMode.VelocityChange);
+            GetComponent<Rigidbody>().AddForce(orientation.forward * 4, ForceMode.Impulse);
+            GetComponent<Rigidbody>().AddForce(orientation.up * -2, ForceMode.Impulse);
+            float random = Random.Range(-1f, 1f);
+            GetComponent<Rigidbody>().AddTorque(new Vector3(random, random, random) * 10);
         }
 
-        public virtual void DestroyGraphics() => Destroy(graphics.transform.GetChild(0).gameObject);
+        public virtual void DestroyGraphics()
+        {
+            Destroy(graphics.transform.GetChild(0).gameObject);
+        }
+
     }
 }

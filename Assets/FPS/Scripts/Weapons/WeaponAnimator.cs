@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Animations;
+using UnityEngine.InputSystem.XR;
 
 namespace cowsins
 {
@@ -10,7 +11,10 @@ namespace cowsins
 
         [SerializeField] private Animator holsterMotionObject;
 
-        public Animator HolsterMotionObject => holsterMotionObject;
+        public Animator HolsterMotionObject
+        {
+            get { return holsterMotionObject; }
+        }
 
 
         private PlayerMovement player;

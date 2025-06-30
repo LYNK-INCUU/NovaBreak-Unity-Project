@@ -55,7 +55,7 @@ namespace cowsins
 
         [HideInInspector] public float heatRatio;
 
-        public Transform HeadBone => headBone;
+        public Transform HeadBone { get { return headBone; } }
 
         private void OnEnable()
         {

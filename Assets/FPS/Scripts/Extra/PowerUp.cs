@@ -3,10 +3,9 @@
 /// </summary>
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-
 namespace cowsins
 {
+
     public class PowerUp : Trigger
     {
         [SerializeField] private bool reappears;
@@ -19,64 +18,41 @@ namespace cowsins
 
         protected float timer = 0;
 
-        private Coroutine timerCoroutine;
-
-        private void Start()
+        private void Update()
         {
-            Timer?.gameObject.SetActive(false);
-        }
-
-        public override void TriggerStay(Collider other)
-        {
-            if (used) return;
-            
-            Interact(other.GetComponent<PlayerMultipliers>());
-
-#if SAVE_LOAD_ADD_ON
-            SaveTrigger();
-#endif
-
-            if (!reappears)
+            if (!reappears && used)
             {
                 Destroy(this.gameObject);
             }
+            if (!used && Timer != null)
+                Timer.gameObject.SetActive(false);
             else
             {
-                used = true;
-                Timer?.gameObject.SetActive(true);
-                if (timerCoroutine != null) StopCoroutine(timerCoroutine); // Stop any existing coroutine
-                timerCoroutine = StartCoroutine(StartTimerCoroutine());
-            } 
-        }
-
-        private IEnumerator StartTimerCoroutine()
-        {
-            float timer = reappearTime;
-
-            while (timer > 0)
-            {
-                timer -= Time.deltaTime;
                 if (Timer != null)
-                    Timer.fillAmount = (reappearTime - timer) / reappearTime;
+                {
+                    Timer.gameObject.SetActive(true);
+                }
+                timer -= Time.deltaTime;
 
-                yield return null;
+            }
+            if (Timer == null) return;
+            if (Timer.gameObject.activeSelf == true)
+            {
+                Timer.fillAmount = (reappearTime - timer) / reappearTime;
             }
 
-            used = false;
-            Timer?.gameObject.SetActive(false);
+            if (timer <= 0 && Timer != null) used = false;
         }
-
+        public override void TriggerStay(Collider other)
+        {
+            if (!used)
+            {
+                Interact(other.GetComponent<PlayerMultipliers>());
+            }
+        }
         public virtual void Interact(PlayerMultipliers player)
         {
             // Override this
         }
-
-#if SAVE_LOAD_ADD_ON
-        // If this power up was triggered and is not supposed to reappear, destroy it.
-        public override void LoadedState()
-        {
-            if (triggered && !reappears) Destroy(this.gameObject);
-        }
-#endif
     }
 }

@@ -23,7 +23,7 @@ namespace cowsins
 
         public override void TriggerEnter(Collider other)
         {
-            if (ExperienceManager.instance == null || !ExperienceManager.instance.useExperience) return; // If we are not using XP in our game we should not pick up XP or we should not be able to.
+            if (ExperienceManager.instance == null) return; // If we are not using XP in our game we should not pick up XP or we should not be able to.
 
             onCollect?.Invoke();
 
@@ -31,10 +31,11 @@ namespace cowsins
             float amount = Random.Range(minXp, maxXp);
             // Add the experience to the player.
             ExperienceManager.instance.AddExperience(amount);
-            UIEvents.onExperienceCollected?.Invoke(true);
+            UIController.addXP?.Invoke();
 
             // Play SFX
             SoundManager.Instance.PlaySound(pickUpSFX, 0, 0, false, 0);
+            UIController.instance.UpdateXPPanel();
             // Destroy the XP.
             Destroy(this.gameObject);
         }
@@ -52,11 +53,5 @@ namespace cowsins
             }
         }
 
-#if SAVE_LOAD_ADD_ON
-        public override void LoadedState()
-        {
-            Destroy(this.gameObject);
-        }
-#endif
     }
 }

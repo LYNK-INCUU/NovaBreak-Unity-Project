@@ -193,18 +193,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3f5648b4fcb7934babbb2a0c0f39131, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: e31ccf15-3618-4b4c-bd35-c706aa3f2c51
-  events:
-    onEnter:
-      m_PersistentCalls:
-        m_Calls: []
-    onStay:
-      m_PersistentCalls:
-        m_Calls: []
-    onExit:
-      m_PersistentCalls:
-        m_Calls: []
-  rememberTriggerState: 0
   minCoins: 100
   maxCoins: 200
   collectCoinSFX: {fileID: 8300000, guid: b277c9855a4daf144bc8840c346ec1a0, type: 3}

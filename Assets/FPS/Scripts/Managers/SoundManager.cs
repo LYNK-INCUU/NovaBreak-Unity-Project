@@ -12,7 +12,7 @@ namespace cowsins
             if (Instance == null)
             {
                 Instance = this;
-                transform.SetParent(null);
+                transform.parent = null;
             }
             else Destroy(this.gameObject);
 
@@ -26,7 +26,7 @@ namespace cowsins
 
         private IEnumerator Play(AudioClip clip, float delay, float pitch, bool randomPitch, float spatialBlend)
         {
-            if (clip == null) yield break;
+            if (!clip) yield return null;
             yield return new WaitForSeconds(delay);
             src.spatialBlend = spatialBlend;
             float pitchAdded = randomPitch ? Random.Range(-pitch, pitch) : pitch;

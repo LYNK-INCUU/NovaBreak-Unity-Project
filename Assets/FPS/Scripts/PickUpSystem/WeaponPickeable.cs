@@ -1,34 +1,24 @@
 using UnityEngine;
 using UnityEditor;
-#if INVENTORY_PRO_ADD_ON
-using cowsins.Inventory;
-#endif
+
 namespace cowsins
 {
-    public partial class WeaponPickeable : Pickeable
+    public class WeaponPickeable : Pickeable
     {
-        [Tooltip("Which weapon are we grabbing"), SaveField] public Weapon_SO weapon;
+        [Tooltip("Which weapon are we grabbing")] public Weapon_SO weapon;
 
-        [HideInInspector, SaveField] public int currentBullets, totalBullets;
+        [HideInInspector] public int currentBullets, totalBullets;
 
-        [SaveField] private AttachmentIdentifier_SO barrel,
-            scope,
-            stock,
-            grip,
-            magazine,
-            flashlight,
-            laser;
-        public AttachmentIdentifier_SO Barrel => barrel;
-        public AttachmentIdentifier_SO Scope => scope;
-        public AttachmentIdentifier_SO Stock => stock;
-        public AttachmentIdentifier_SO Grip => grip;
-        public AttachmentIdentifier_SO Magazine => magazine;
-        public AttachmentIdentifier_SO Flashlight => flashlight;
-        public AttachmentIdentifier_SO Laser => laser;
-
-        public override void Awake()
+        private AttachmentIdentifier_SO Barrel,
+            Scope,
+            Stock,
+            Grip,
+            Magazine,
+            Flashlight,
+            Laser;
+        public override void Start()
         {
-            base.Awake();
+            base.Start();
             if (dropped) return;
             Initialize();
         }
@@ -47,12 +37,6 @@ namespace cowsins
 
         public override void Interact(Transform player)
         {
-            if (weapon == null)
-            {
-                Debug.LogError("<color=red>[COWSINS]</color> <b><color=yellow>Weapon_SO</color></b> " +
-                "not found! Skipping Interaction.", this);
-                return;
-            }
             base.Interact(player);
             WeaponController weaponController = player.GetComponent<WeaponController>();
             InteractManager interactManager = player.GetComponent<InteractManager>();
@@ -64,7 +48,7 @@ namespace cowsins
                     if (weaponController.inventory[i] && weaponController.inventory[i].weapon == weapon && weapon.limitedMagazines)
                     {
                         weaponController.id.totalBullets += 10;
-                        DestroyAndSave();
+                        Destroy(this.gameObject);
                         return;
                     }
                 }
@@ -72,39 +56,11 @@ namespace cowsins
 
             if (!CheckIfInventoryFull(weaponController))
             {
-                DestroyAndSave();
+                Destroy(gameObject);
                 return;
             }
 
-#if INVENTORY_PRO_ADD_ON
-             if (InventoryProManager.instance && InventoryProManager.instance.StoreWeaponsIfHotbarFull)
-            {
-                bool success = InventoryProManager.instance._GridGenerator.AddWeaponToInventory(weapon, currentBullets, totalBullets);
-                if (success)
-                {
-                    ToastManager.Instance?.ShowToast($"{weapon._name} {ToastManager.Instance.CollectedMsg}");
-                    DestroyAndSave();
-                }
-                else
-                    ToastManager.Instance?.ShowToast(ToastManager.Instance.InventoryIsFullMsg);
-                return;
-            }
-#endif
             SwapWeapons(weaponController);
-
-            interacted = false;
-#if SAVE_LOAD_ADD_ON
-            StoreData();
-#endif
-        }
-
-        private void DestroyAndSave()
-        {
-#if SAVE_LOAD_ADD_ON
-            interacted = true;
-            StoreData();
-#endif
-            Destroy(this.gameObject);
         }
 
         private bool CheckIfInventoryFull(WeaponController weaponController)
@@ -180,7 +136,8 @@ namespace cowsins
 
         private void UpdateWeaponUI(WeaponController weaponController, int slot)
         {
-            weaponController.weaponsInventoryUISlots[slot].SetWeapon(weapon);
+            weaponController.slots[slot].weapon = weapon;
+            weaponController.slots[slot].GetImage();
         }
 
 #if UNITY_EDITOR
@@ -210,13 +167,13 @@ namespace cowsins
         private int SetDefaultAttachments()
         {
             DefaultAttachment defaultAttachments = weapon.weaponObject.defaultAttachments;
-            barrel = defaultAttachments.defaultBarrel?.attachmentIdentifier;
-            scope = defaultAttachments.defaultScope?.attachmentIdentifier;
-            stock = defaultAttachments.defaultStock?.attachmentIdentifier;
-            grip = defaultAttachments.defaultGrip?.attachmentIdentifier;
-            flashlight = defaultAttachments.defaultFlashlight?.attachmentIdentifier;
-            this.magazine = defaultAttachments.defaultMagazine?.attachmentIdentifier;
-            laser = defaultAttachments.defaultLaser?.attachmentIdentifier;
+            Barrel = defaultAttachments.defaultBarrel?.attachmentIdentifier;
+            Scope = defaultAttachments.defaultScope?.attachmentIdentifier;
+            Stock = defaultAttachments.defaultStock?.attachmentIdentifier;
+            Grip = defaultAttachments.defaultGrip?.attachmentIdentifier;
+            Flashlight = defaultAttachments.defaultFlashlight?.attachmentIdentifier;
+            Magazine = defaultAttachments.defaultMagazine?.attachmentIdentifier;
+            Laser = defaultAttachments.defaultLaser?.attachmentIdentifier;
 
             if (defaultAttachments.defaultMagazine is Magazine magazine)
             {
@@ -228,16 +185,15 @@ namespace cowsins
         /// <summary>
         /// Stores the attachments on the WeaponPickeable so they can be accessed later in case the weapon is picked up.
         /// </summary>
-        public void SetPickeableAttachments(AttachmentIdentifier_SO b, AttachmentIdentifier_SO sc, AttachmentIdentifier_SO st, AttachmentIdentifier_SO gr,
-        AttachmentIdentifier_SO mag, AttachmentIdentifier_SO fl, AttachmentIdentifier_SO ls)
+        public void SetPickeableAttachments(Attachment b, Attachment sc, Attachment st, Attachment gr, Attachment mag, Attachment fl, Attachment ls)
         {
-            barrel = b;
-            scope = sc;
-            stock = st;
-            grip = gr;
-            magazine = mag;
-            flashlight = fl;
-            laser = ls;
+            Barrel = b?.attachmentIdentifier;
+            Scope = sc?.attachmentIdentifier;
+            Stock = st?.attachmentIdentifier;
+            Grip = gr?.attachmentIdentifier;
+            Magazine = mag?.attachmentIdentifier;
+            Flashlight = fl?.attachmentIdentifier;
+            Laser = ls?.attachmentIdentifier;
         }
         public void GetVisuals()
         {
@@ -254,22 +210,55 @@ namespace cowsins
         {
             WeaponIdentification wp = weaponController.inventory[weaponController.currentWeapon];
 
-            var attachments = new[] { barrel, scope, stock, grip, magazine, flashlight, laser };
+            var attachments = new[] { Barrel, Scope, Stock, Grip, Magazine, Flashlight, Laser };
             foreach (var attachment in attachments)
             {
-                (Attachment atc, int id) = CowsinsUtilities.GetAttachmentID(attachment, wp);
+                (Attachment atc, int id) = GetAttachmentID(attachment, wp);
                 weaponController.AssignNewAttachment(atc, id);
             }
         }
 
-#if SAVE_LOAD_ADD_ON
-        // If the Interactable was interacted, destroy on load, if not, load its visuals.
-        public override void LoadedState()
+        /// <summary>
+        /// Grabs the attachment object and the id given an attachment identifier
+        /// </summary>
+        /// <param name="atcToCheck">Attachment object to get information about returned.</param>
+        /// <param name="wID">Weapon Identification that holds the attachments</param>
+        /// <returns></returns>
+        private (Attachment, int) GetAttachmentID(AttachmentIdentifier_SO atcToCheck, WeaponIdentification wID)
         {
-            if (this.interacted) Destroy(this.gameObject);
-            else GetVisuals();
+            // Check for compatibility
+            for (int i = 0; i < wID.compatibleAttachments.barrels.Length; i++)
+            {
+                if (atcToCheck == wID.compatibleAttachments.barrels[i].attachmentIdentifier) return (wID.compatibleAttachments.barrels[i], i);
+            }
+            for (int i = 0; i < wID.compatibleAttachments.scopes.Length; i++)
+            {
+                if (atcToCheck == wID.compatibleAttachments.scopes[i].attachmentIdentifier) return (wID.compatibleAttachments.scopes[i], i);
+            }
+            for (int i = 0; i < wID.compatibleAttachments.stocks.Length; i++)
+            {
+                if (atcToCheck == wID.compatibleAttachments.stocks[i].attachmentIdentifier) return (wID.compatibleAttachments.stocks[i], i);
+            }
+            for (int i = 0; i < wID.compatibleAttachments.grips.Length; i++)
+            {
+                if (atcToCheck == wID.compatibleAttachments.grips[i].attachmentIdentifier) return (wID.compatibleAttachments.grips[i], i);
+            }
+            for (int i = 0; i < wID.compatibleAttachments.magazines.Length; i++)
+            {
+                if (atcToCheck == wID.compatibleAttachments.magazines[i].attachmentIdentifier) return (wID.compatibleAttachments.magazines[i], i);
+            }
+            for (int i = 0; i < wID.compatibleAttachments.flashlights.Length; i++)
+            {
+                if (atcToCheck == wID.compatibleAttachments.flashlights[i].attachmentIdentifier) return (wID.compatibleAttachments.flashlights[i], i);
+            }
+            for (int i = 0; i < wID.compatibleAttachments.lasers.Length; i++)
+            {
+                if (atcToCheck == wID.compatibleAttachments.lasers[i].attachmentIdentifier) return (wID.compatibleAttachments.lasers[i], i);
+            }
+
+            // Return an error
+            return (null, -1);
         }
-#endif
     }
 
 #if UNITY_EDITOR

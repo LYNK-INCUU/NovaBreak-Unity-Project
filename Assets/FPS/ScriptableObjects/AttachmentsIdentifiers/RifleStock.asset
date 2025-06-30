@@ -12,11 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ed8e9adcfedb5d4085ce56cbdf53865, type: 3}
   m_Name: RifleStock
   m_EditorClassIdentifier: 
-  _name: Rifle Stock
-  icon: {fileID: 21300000, guid: f1d9296b25463fe429b8eef1117610d6, type: 3}
+  attachmentName: Rifle Stock
+  attachmentIcon: {fileID: 21300000, guid: f1d9296b25463fe429b8eef1117610d6, type: 3}
   pickUpGraphics: {fileID: 6026977812671911777, guid: b4fed06ca188590459e3f8fc93e9139f, type: 3}
-  maxStack: 1
-  itemSize: {x: 1, y: 1}
-  irregularItemIcon: {fileID: 0}
-  applyWeight: 0
-  weightMultiplier: 1

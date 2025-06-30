@@ -45,22 +45,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d3a2891220dbf3438e129c84de05063, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: 233f4827-5a89-4dc7-9904-e1ddbed85b78
   _name: CircularTarget
-  health: 0
-  shield: 0
   maxHealth: 2
   maxShield: 0
-  destroyOnDie: 0
-  deathEffect: {fileID: 0}
   healthSlider: {fileID: 0}
   shieldSlider: {fileID: 0}
   showUI: 0
-  showDamagePopUps: 0
-  showKillFeed: 0
-  dieSFX: {fileID: 0}
+  damagePopUp: {fileID: 0}
+  shieldColor: {r: 0, g: 0, b: 0, a: 0}
+  healthColor: {r: 0, g: 0, b: 0, a: 0}
+  xVariation: 0
+  player: {fileID: 0}
   events:
     OnSpawn:
+      m_PersistentCalls:
+        m_Calls: []
+    OnShoot:
       m_PersistentCalls:
         m_Calls: []
     OnDamaged:

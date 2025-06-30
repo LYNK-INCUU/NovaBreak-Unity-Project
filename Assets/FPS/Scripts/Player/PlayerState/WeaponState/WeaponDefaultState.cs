@@ -1,8 +1,7 @@
 namespace cowsins
 {
-    using UnityEngine;
-    using UnityEngine.Events;
 
+    using UnityEngine;
     public class WeaponDefaultState : WeaponBaseState
     {
         private WeaponController controller;
@@ -18,11 +17,6 @@ namespace cowsins
         private float noBulletIndicator;
 
         private bool holdingEmpty = false;
-
-        private UnityEvent shootMethodAction;
-
-        private Weapon_SO backUpWeapon;
-
         public WeaponDefaultState(WeaponStates currentContext, WeaponStateFactory playerStateFactory)
             : base(currentContext, playerStateFactory) { }
 
@@ -36,53 +30,71 @@ namespace cowsins
             holdProgress = 0;
 
             holdingEmpty = false;
-
-            InputManager.onInspect += SwitchToInspect;
-            InputManager.onMelee += SwitchToMelee;
-            InputManager.onToggleFlashlight += controller.ToggleFlashLight;
-            shootMethodAction = new UnityEvent();
-            controller.events.OnUnholsterWeapon.AddListener(UpdateWeaponShootEvents);
-            UpdateWeaponShootEvents();
         }
 
-        private void UpdateWeaponShootEvents()
-        {
-            if (controller.weapon == backUpWeapon) return;
-            
-            backUpWeapon = controller.weapon;
-            
-            switch (controller.weapon?.shootMethod)
-            {
-                case ShootingMethod.Press: shootMethodAction.AddListener(PressShoot); break;
-                case ShootingMethod.PressAndHold: shootMethodAction.AddListener(PressHoldShoot); break;
-                case ShootingMethod.HoldAndRelease: shootMethodAction.AddListener(HoldAndReleaseShoot); break;
-                case ShootingMethod.HoldUntilReady: shootMethodAction.AddListener(HoldUntilReadyShoot); break;
-            }
-        }
 
         public override void UpdateState()
         {
             if (!stats.controllable) return;
-            HandleInventory(); 
+            HandleInventory();
+            if (InputManager.melee && controller.CanMelee && controller.isMeleeReady && !movement.Climbing) SwitchState(_factory.Melee());
             if (controller.weapon == null || movement.Climbing) return;
             CheckAim();
+            FlashlightAttachmentBehaviour();
         }
 
         public override void FixedUpdateState() {
             if (!stats.controllable || controller.weapon == null || movement.Climbing) return;
             CheckSwitchState();
+
         }
 
-        public override void ExitState() 
-        {
-            InputManager.onInspect -= SwitchToInspect;
-            InputManager.onMelee -= SwitchToMelee;
-            InputManager.onToggleFlashlight -= controller.ToggleFlashLight;
-            controller.events.OnEquipWeapon.RemoveListener(UpdateWeaponShootEvents);
-        }
+        public override void ExitState() { }
         public override void CheckSwitchState()
         {
-            if (CanSwitchToShoot()) shootMethodAction?.Invoke();
+
+            if (InputManager.inspecting && _ctx.inspectionUI.alpha <= 0 && interact.canInspect) SwitchState(_factory.Inspect());
+
+            if (controller.canShoot &&
+                (controller.id.bulletsLeftInMagazine > 0 || controller.weapon.shootStyle == ShootStyle.Melee) // Melee weapons dont use bullets 
+                && !controller.selectingWeapon
+                && (movement.canShootWhileDashing && movement.dashing || !movement.dashing))
+            {
+                switch (controller.weapon.shootMethod)
+                {
+                    case ShootingMethod.Press:
+                        if (InputManager.shooting && !controller.holding)
+                        {
+                            controller.holding = true; // We are holding 
+                            SwitchState(_factory.Shoot());
+                        }
+                        break;
+                    case ShootingMethod.PressAndHold:
+                        if (InputManager.shooting) SwitchState(_factory.Shoot());
+                        break;
+                    case ShootingMethod.HoldAndRelease:
+                        if (!InputManager.shooting)
+                        {
+                            if (holdProgress > 100) SwitchState(_factory.Shoot());
+                            holdProgress = 0;
+                        }
+                        if (InputManager.shooting)
+                        {
+                            Debug.Log(holdProgress);
+                            holdProgress += Time.deltaTime * controller.weapon.holdProgressSpeed;
+                            controller.holding = true;
+                        }
+                        break;
+                    case ShootingMethod.HoldUntilReady:
+                        if (!InputManager.shooting) holdProgress = 0;
+                        if (InputManager.shooting)
+                        {
+                            holdProgress += Time.deltaTime * controller.weapon.holdProgressSpeed;
+                            if (holdProgress > 100) SwitchState(_factory.Shoot());
+                        }
+                        break;
+                }
+            }
 
             if (controller.weapon.audioSFX.emptyMagShoot != null)
             {
@@ -102,7 +114,7 @@ namespace cowsins
 
             if (controller.weapon.reloadStyle == ReloadingStyle.defaultReload && !controller.shooting)
             {
-                if (CanSwitchToReload(controller))
+                if (CheckIfReloadSwitch(controller))
                     SwitchState(_factory.Reload());
             }
             else
@@ -122,63 +134,14 @@ namespace cowsins
 
         private void HandleInventory() => controller.HandleInventory();
 
-        private bool CanSwitchToReload(WeaponController controller)
+        private void FlashlightAttachmentBehaviour()
+        {
+            if (controller.inventory[controller.currentWeapon].flashlight != null && InputManager.toggleFlashLight) controller.ToggleFlashLight();
+        }
+        private bool CheckIfReloadSwitch(WeaponController controller)
         {
             return InputManager.reloading && (int)controller.weapon.shootStyle != 2 && controller.id.bulletsLeftInMagazine < controller.id.magazineSize && controller.id.totalBullets > 0
                         || controller.id.bulletsLeftInMagazine <= 0 && controller.autoReload && (int)controller.weapon.shootStyle != 2 && controller.id.bulletsLeftInMagazine < controller.id.magazineSize && controller.id.totalBullets > 0;
-        }
-
-        private void SwitchToInspect()
-        {
-            if (stats.controllable && controller.weapon && _ctx.inspectionUI.alpha <= 0 && interact.canInspect) SwitchState(_factory.Inspect());
-        }
-
-        private void SwitchToMelee()
-        {
-            if (stats.controllable && controller.CanMelee && controller.isMeleeReady && !movement.Climbing) SwitchState(_factory.Melee());
-        }
-
-        private bool CanSwitchToShoot()
-        {
-            return controller.CanShoot &&
-                (controller.id.bulletsLeftInMagazine > 0 || controller.weapon.shootStyle == ShootStyle.Melee) // Melee weapons dont use bullets 
-                && !controller.selectingWeapon
-                && (movement.canShootWhileDashing && movement.dashing || !movement.dashing);
-        }
-
-        private void PressShoot()
-        {
-            if (InputManager.shooting && !controller.holding)
-            {
-                controller.holding = true; // We are holding 
-                SwitchState(_factory.Shoot());
-            }
-        }
-        private void PressHoldShoot()
-        {
-            if (InputManager.shooting) SwitchState(_factory.Shoot());
-        }
-        private void HoldAndReleaseShoot()
-        {
-            if (!InputManager.shooting)
-            {
-                if (holdProgress > 100) SwitchState(_factory.Shoot());
-                holdProgress = 0;
-            }
-            if (InputManager.shooting)
-            {
-                holdProgress += Time.deltaTime * controller.weapon.holdProgressSpeed;
-                controller.holding = true;
-            }
-        }
-        private void HoldUntilReadyShoot()
-        {
-            if (!InputManager.shooting) holdProgress = 0;
-            if (InputManager.shooting)
-            {
-                holdProgress += Time.deltaTime * controller.weapon.holdProgressSpeed;
-                if (holdProgress > 100) SwitchState(_factory.Shoot());
-            }
         }
     }
 }

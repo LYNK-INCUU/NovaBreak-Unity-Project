@@ -6,7 +6,6 @@
 
 using UnityEngine;
 using UnityEditor;
-using static cowsins.PlayerMovement;
 namespace cowsins
 {
     [System.Serializable]
@@ -40,7 +39,6 @@ namespace cowsins
                     case "Assignables":
                         EditorGUILayout.LabelField("ASSIGNABLES", EditorStyles.boldLabel);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("playerCam"));
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("cameraFOVManager"));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("orientation"));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("useSpeedLines"));
                         if (myScript.useSpeedLines)
@@ -92,7 +90,7 @@ namespace cowsins
                             EditorGUILayout.PropertyField(serializedObject.FindProperty("slidingCameraTiltAmount"));
                             EditorGUI.indentLevel--;
                         }
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("cameraTiltTransitionSpeed"));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("cameraTiltTransationSpeed"));
                         break;
                     case "Movement":
                         EditorGUILayout.LabelField("BASIC MOVEMENT INPUT SETTINGS", EditorStyles.boldLabel);
@@ -129,7 +127,7 @@ namespace cowsins
                         if (myScript.maxSpeedAllowed < myScript.runSpeed) myScript.maxSpeedAllowed = myScript.runSpeed;
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("whatIsGround"));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("groundCheckDistance"));
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("controlsResponsiveness"));
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("frictionForceAmount"));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("maxSlopeAngle"));
                         break;
                     case "Sliding":
@@ -141,7 +139,6 @@ namespace cowsins
                             EditorGUILayout.LabelField("A new customizable variable has been unlocked in `CAMERA`.", EditorStyles.helpBox);
                             EditorGUILayout.PropertyField(serializedObject.FindProperty("slideForce"));
                             EditorGUILayout.PropertyField(serializedObject.FindProperty("allowMoveWhileSliding"));
-                            EditorGUILayout.PropertyField(serializedObject.FindProperty("slideFrictionForceAmount"));
                             EditorGUI.indentLevel--;
                         }
 
@@ -164,12 +161,6 @@ namespace cowsins
                             {
                                 EditorGUI.indentLevel++;
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("resetJumpsOnWallBounce"));
-                                EditorGUI.indentLevel--;
-                            }
-                            if (myScript.allowGrapple)
-                            {
-                                EditorGUI.indentLevel++;
-                                EditorGUILayout.PropertyField(serializedObject.FindProperty("resetJumpsOnGrapple"));
                                 EditorGUI.indentLevel--;
                             }
                             if (myScript.maxJumps > 1)
@@ -352,14 +343,9 @@ namespace cowsins
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("allowGrapple"));
                                 if (myScript.allowGrapple)
                                 {
-                                    EditorGUI.indentLevel++; 
-                                    EditorGUILayout.LabelField("NEW SOUNDS AVAILABLE UNDER ´Others´ & ´Jumping´ SETTINGS", EditorStyles.helpBox);
+                                    EditorGUI.indentLevel++;
+                                    EditorGUILayout.LabelField("NEW SOUNDS AVAILABLE UNDER ´Others´ SETTINGS", EditorStyles.helpBox);
                                     EditorGUILayout.PropertyField(serializedObject.FindProperty("maxGrappleDistance"));
-                                    EditorGUILayout.PropertyField(serializedObject.FindProperty("grapplingHookMethod"));
-                                    EditorGUILayout.HelpBox(myScript.grapplingHookMethod == GrapplingHookMethod.Linear 
-                                            ? "SUGGESTED VALUES: grappleForce = 100"
-                                            : "SUGGESTED VALUES: grappleSpringForce = 4.5 | grappleDamper = 7", MessageType.Info);
-                                    EditorGUILayout.PropertyField(serializedObject.FindProperty("grappleRopeLength"));
                                     EditorGUILayout.PropertyField(serializedObject.FindProperty("grappleCooldown"));
                                     EditorGUILayout.PropertyField(serializedObject.FindProperty("distanceToBreakGrapple"));
                                     EditorGUILayout.PropertyField(serializedObject.FindProperty("grappleForce"));

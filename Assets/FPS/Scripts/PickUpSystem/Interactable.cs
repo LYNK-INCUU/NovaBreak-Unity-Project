@@ -17,16 +17,16 @@ namespace cowsins
     /// For any doubts check the documentation or contact the support.
     /// 
     /// </summary>
-    public partial class Interactable : Identifiable
+    public class Interactable : MonoBehaviour
     {
         [HideInInspector] public bool interactable = false;
 
-        [Tooltip("Text that will be displayed on the Interaction UI"), Title("INTERACTABLE")]
+        [Tooltip("Text that will be displayed on the Interaction UI")]
         public string interactText;
 
         [SerializeField] private bool instantInteraction = false;
 
-        public bool InstantInteraction => instantInteraction;
+        public bool InstantInteraction { get { return instantInteraction; } }
 
         [System.Serializable]
         public class InteractableEvents // Store your events
@@ -36,8 +36,10 @@ namespace cowsins
 
         public InteractableEvents interactableEvents;
 
-        [SaveField] protected bool interacted = false;
-
+        private void Start()
+        {
+            interactable = false;
+        }
         /// <summary>
         /// Make sure to override this on your new custom class.
         /// If you still wanna call this method, make sure to write the following line:
@@ -46,10 +48,7 @@ namespace cowsins
         public virtual void Interact(Transform player)
         {
             interactableEvents.OnInteract?.Invoke();
-            interacted = true;
-#if SAVE_LOAD_ADD_ON
-            StoreData();
-#endif
+            Debug.Log("Interacted with" + this.gameObject.name);
         }
 
         public virtual void Highlight()
@@ -59,11 +58,6 @@ namespace cowsins
         public virtual void Unhighlight()
         {
 
-        }
-
-        public virtual bool IsForbiddenInteraction(WeaponController weaponController)
-        {
-            return false; 
         }
     }
 

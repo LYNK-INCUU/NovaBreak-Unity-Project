@@ -4,6 +4,7 @@ namespace cowsins
     {
         protected WeaponStates _ctx;
         protected WeaponStateFactory _factory;
+        protected WeaponBaseState _currentSuperState;
 
         public WeaponBaseState(WeaponStates currentContext, WeaponStateFactory playerStateFactory)
         {
@@ -31,6 +32,11 @@ namespace cowsins
             newState.EnterState();
 
             _ctx.CurrentState = newState;
+        }
+
+        protected void SetSuperState(WeaponBaseState newSuperState)
+        {
+            _currentSuperState = newSuperState;
         }
     }
 }

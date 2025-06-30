@@ -5,19 +5,14 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
-using UnityEngine.Timeline;
-
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditor.Presets;
-#endif
-
-#if INVENTORY_PRO_ADD_ON
-using cowsins.Inventory;
-#endif
-
 namespace cowsins
 {
+
+#if UNITY_EDITOR
+    using UnityEditor;
+    using UnityEditor.Presets;
+#endif
+
     #region enum
     /// <summary>
     /// SHOOTING STYLE ENUMERATOR
@@ -60,15 +55,21 @@ namespace cowsins
     [System.Serializable]
     public class BulletHoleImpact
     {
-        public GameObject defaultImpact, groundImpact, grassImpact, enemyImpact, metalImpact, mudImpact, woodImpact;
+        public GameObject defaultImpact, groundIMpact, grassImpact, enemyImpact, metalImpact, mudImpact, woodImpact;
     }
     #endregion
 
     #region weaponScriptableObject
     [CreateAssetMenu(fileName = "NewWeapon", menuName = "COWSINS/New Weapon", order = 1)]
-    public class Weapon_SO : Item_SO
+    public class Weapon_SO : ScriptableObject
     {
         [Tooltip("Attach your weapon prefab here. This weapon prefab will be instantiated on your screen when you equip this weapon.")] public WeaponIdentification weaponObject;
+
+        [Tooltip("You weapon�s name. Ex: Glock")] public string _name;
+
+        [Tooltip("Visuals that will appear on a dropped weapon.")] public GameObject pickUpGraphics;
+
+        [Tooltip("Custom image of your weapon")] public Sprite icon;
 
         [Tooltip("Type of shooting. Hitscan = Instant hit on shooting." +
             "Projectile = spawn a bullet that travels through the world." +
@@ -164,9 +165,15 @@ namespace cowsins
 
         [Tooltip("Apply spread per shot")] public bool applyBulletSpread;
 
+        [Tooltip("Velocity will be decreased depending on the weight of the weapon if this is true.")] public bool applyWeight;
+
         [Tooltip("How much spread is applied.")] [Range(0, 2)] public float spreadAmount;
 
         [Tooltip("How much spread is applied while aiming.")] [Range(0, 2)] public float aimSpreadAmount;
+
+        [Range(1, 3)]
+        [Tooltip("Multiplier to increase or decrease your speed while holding the weapon")] public float weightMultiplier = 1f;
+        // Multiplier to increase or decrease your speed while holding the weapon
 
         [Tooltip("Apply recoil on shooting")] public bool applyRecoil;
 
@@ -244,33 +251,6 @@ namespace cowsins
 
         public string presetName;
 
-#if INVENTORY_PRO_ADD_ON
-        public override void Use(InventoryProManager inventoryProManager, InventorySlot slot)
-        {
-            WeaponController weaponController = inventoryProManager._WeaponController;
-            if (slot.IsInventorySlot)
-            {
-                if (weaponController.inventory[weaponController.currentWeapon] != null)
-                {
-                    ToastManager.Instance?.ShowToast(ToastManager.Instance.WeaponIsAlreadyUnholsteredMsg);
-                    return;
-                }
-                SlotData slotData = slot.slotData;
-                Weapon_SO weaponSO = (Weapon_SO)slotData.item;
-                if (weaponSO == null) return;
-
-                weaponController.InstantiateWeapon(weaponSO, weaponController.currentWeapon, slotData.bulletsLeftInMagazine, slotData.totalBullets);
-                inventoryProManager._GridGenerator.ClearSlotArea(slot);
-                inventoryProManager.UpdateHotbarSlot(weaponController.currentWeapon, slotData.barrel, slotData.scope, slotData.stock, slotData.grip,
-                    slotData.magazine, slotData.flashlight, slotData.laser);
-            }
-            else if (slot.IsHotbarSlot)
-            {
-                weaponController.currentWeapon = slot.col;
-                weaponController.SelectWeapon(); 
-            }
-        }
-#endif
 
     }
     #endregion
@@ -286,17 +266,6 @@ namespace cowsins
     {
         private string[] tabs = { "Basic", "Shooting", "Stats", "Visuals", "Audio", "UI" };
         private int currentTab = 0;
-
-        private bool isInventoryAddonAvailable;
-        private void OnEnable()
-        {
-            // Check if the Inventory Addon is available
-            #if INVENTORY_PRO_ADD_ON
-                isInventoryAddonAvailable = true;
-            #else
-                isInventoryAddonAvailable = false;
-            #endif
-        }
 
         override public void OnInspectorGUI()
         {
@@ -338,34 +307,14 @@ namespace cowsins
                 switch (tabs[currentTab])
                 {
                     case "Basic":
-                        BeginBox("BASIC SETTINGS");
-                        EditorGUILayout.Space(10f);
+                        EditorGUILayout.LabelField("BASIC SETTINGS", EditorStyles.boldLabel);
+                        GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("_name"));
                         EditorGUILayout.LabelField("This represents your first-person weapon in the game.", EditorStyles.helpBox);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("weaponObject"));
                         EditorGUILayout.LabelField("This represents the graphics of your weapon on the ground.", EditorStyles.helpBox);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("pickUpGraphics"));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("icon"));
-                        GUI.enabled = isInventoryAddonAvailable;
-                        if (!isInventoryAddonAvailable)
-                        {
-                            EditorGUILayout.Space(10);
-                            EditorGUILayout.HelpBox("These features are locked. Inventory Pro Manager + Save & Load Add-On is not installed.", MessageType.Info);
-                            EditorGUILayout.Space(5);
-                        }
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("itemSize"));
-                        if (myScript.itemSize.x != myScript.itemSize.y)
-                        {
-                            EditorGUI.indentLevel++;
-                            EditorGUILayout.Space(5);
-                            EditorGUILayout.HelpBox($"Your item has an irregular size [{myScript.itemSize.x} : {myScript.itemSize.y}], which may cause icon stretching." +
-                            "To maintain the correct aspect ratio, consider setting 'irregularItemIcon' with a properly scaled icon.", MessageType.Info);
-                            EditorGUILayout.Space(5);
-                            EditorGUILayout.PropertyField(serializedObject.FindProperty("irregularItemIcon"));
-                            EditorGUI.indentLevel--;
-                        }
-
-                        GUI.enabled = true;
                         EditorGUILayout.Space(20f);
                         EditorGUILayout.BeginHorizontal();
                         {
@@ -378,10 +327,11 @@ namespace cowsins
                             GUILayout.FlexibleSpace();
                         }
                         EditorGUILayout.EndHorizontal();
-                        EndBox();
 
                         break;
                     case "Shooting":
+                        EditorGUILayout.LabelField("Shooting Settings", EditorStyles.boldLabel);
+                        GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
                         if (myScript.shootStyle == ShootStyle.Custom)
                         {
                             EditorGUILayout.Space(10f);
@@ -391,12 +341,8 @@ namespace cowsins
                             }
                             EditorGUILayout.Space(10f);
                         }
-                        BeginBox("SHOOTING SETTINGS");
-
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("shootStyle"));
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("shootMethod"));
-
-                        EndBox();
 
                         if (myScript.shootMethod == ShootingMethod.HoldUntilReady || myScript.shootMethod == ShootingMethod.HoldAndRelease)
                         {
@@ -410,7 +356,7 @@ namespace cowsins
                                 WeaponShootingSharedVariables(myScript);
                                 break;
                             case 1:
-                                BeginBox("PROJECTILE SETTINGS");
+                                EditorGUI.indentLevel++;
                                 EditorGUILayout.PrefixLabel("Attach your Projectile here", EditorStyles.helpBox);
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("projectile"));
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("projectileUsesGravity"));
@@ -428,31 +374,29 @@ namespace cowsins
                                     EditorGUILayout.LabelField("Check new options under 'Visuals' tab. ", EditorStyles.helpBox);
                                     EditorGUI.indentLevel--;
                                 }
-                                EndBox();
                                 WeaponShootingSharedVariables(myScript);
                                 EditorGUILayout.Space(5f);
+                                EditorGUI.indentLevel--;
                                 break;
                             case 2:
-                                BeginBox("MELEE OPTIONS");
+                                EditorGUILayout.LabelField("Melee Options", EditorStyles.boldLabel);
                                 EditorGUILayout.Space(2f);
                                 var attackRangeProperty = serializedObject.FindProperty("attackRange");
                                 EditorGUILayout.PropertyField(attackRangeProperty);
                                 var attackRateProperty = serializedObject.FindProperty("attackRate");
                                 EditorGUILayout.PropertyField(attackRateProperty);
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("hitDelay"));
-                                EndBox();
+
                                 break;
                             case 3:
-                                BeginBox("CUSTOM SHOT WEAPONS OPTIONS");
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("continuousFire"));
                                 if (!myScript.continuousFire)
                                 {
                                     EditorGUI.indentLevel++;
-                                    EditorGUILayout.PropertyField(serializedObject.FindProperty("fireRate"),new GUIContent("Fire Delay"));
+                                    EditorGUILayout.PropertyField(serializedObject.FindProperty("fireRate"));
                                     EditorGUI.indentLevel--;
                                 }
                                 else EditorGUILayout.LabelField("Continuous Fire will call your custom method ONCE per frame.", EditorStyles.helpBox);
-                                EndBox();
                                 break;
                         }
                         break;
@@ -466,25 +410,9 @@ namespace cowsins
                                 WeaponStatsSharedVariables(myScript);
                                 break;
                             case 2:
-                                BeginBox("MELEE STATS");
-                                EditorGUILayout.PropertyField(serializedObject.FindProperty("damagePerHit"));
-                                EditorGUILayout.PropertyField(serializedObject.FindProperty("criticalDamageMultiplier")); 
-                                
-                                var applyWeightProperty = serializedObject.FindProperty("applyWeight");
-                                EditorGUILayout.PropertyField(applyWeightProperty);
-
-                                using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(myScript.applyWeight)))
-                                {
-                                    if (group.visible == true)
-                                    {
-                                        EditorGUI.indentLevel++;
-                                        var weightMultiplierProperty = serializedObject.FindProperty("weightMultiplier");
-                                        EditorGUILayout.PropertyField(weightMultiplierProperty);
-                                        EditorGUI.indentLevel--;
-                                    }
-                                }
-                                if (!myScript.applyWeight) myScript.weightMultiplier = 1;
-                                EndBox();   
+                                var damagePerHitProperty = serializedObject.FindProperty("damagePerHit");
+                                EditorGUILayout.PropertyField(damagePerHitProperty);
+                                EditorGUILayout.PropertyField(serializedObject.FindProperty("criticalDamageMultiplier"));
                                 break;
                         }
                         break;
@@ -493,19 +421,8 @@ namespace cowsins
                         {
                             case 0:
                                 EditorGUILayout.Space(5f);
-                                BeginBox("PROCEDURAL ANIMATIONS");
-                                EditorGUILayout.PropertyField(serializedObject.FindProperty("useProceduralShot"));
-                                if (myScript.useProceduralShot)
-                                {
-                                    EditorGUI.indentLevel++;
-                                    EditorGUILayout.PropertyField(serializedObject.FindProperty("proceduralShotPattern"));
-                                    EditorGUI.indentLevel--;
-                                }
-                                EndBox();
-                                WeaponVisualSharedVariables(myScript);
-                                break;
-                            case 1:
-                                BeginBox("PROCEDURAL ANIMATIONS");
+                                EditorGUILayout.LabelField("Visuals", EditorStyles.boldLabel);
+                                EditorGUILayout.LabelField("Procedural Animations");
                                 GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("useProceduralShot"));
                                 if (myScript.useProceduralShot)
@@ -514,17 +431,34 @@ namespace cowsins
                                     EditorGUILayout.PropertyField(serializedObject.FindProperty("proceduralShotPattern"));
                                     EditorGUI.indentLevel--;
                                 }
-                                EndBox();
+                                EditorGUILayout.Space(5f);
+                                WeaponVisualSharedVariables(myScript);
+                                break;
+                            case 1:
+                                EditorGUILayout.Space(5f);
+                                EditorGUILayout.LabelField("Visuals", EditorStyles.boldLabel);
+                                EditorGUILayout.LabelField("Procedural Animations");
+                                GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
+                                EditorGUILayout.PropertyField(serializedObject.FindProperty("useProceduralShot"));
+                                if (myScript.useProceduralShot)
+                                {
+                                    EditorGUI.indentLevel++;
+                                    EditorGUILayout.PropertyField(serializedObject.FindProperty("proceduralShotPattern"));
+                                    EditorGUI.indentLevel--;
+                                }
+                                EditorGUILayout.Space(5f);
                                 WeaponVisualSharedVariables(myScript);
                                 if (myScript.explosionOnHit)
                                 {
-                                    BeginBox("");
+                                    EditorGUI.indentLevel++;
                                     EditorGUILayout.PropertyField(serializedObject.FindProperty("explosionVFX"));
-                                    EndBox();
+                                    EditorGUI.indentLevel--;
                                 }
                                 break;
                             case 2:
-                                BeginBox("CAMERA");
+                                EditorGUILayout.Space(10f);
+                                EditorGUILayout.LabelField("EFFECTS", EditorStyles.boldLabel);
+                                EditorGUILayout.Space(2f);
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("camShakeAmount"));
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("applyFOVEffectOnShooting"));
                                 if (myScript.applyFOVEffectOnShooting)
@@ -533,13 +467,12 @@ namespace cowsins
                                     EditorGUILayout.PropertyField(serializedObject.FindProperty("FOVValueToSubtract"));
                                     EditorGUI.indentLevel--;
                                 }
-                                EndBox();
-                                BeginBox("ANIMATIONS");
+                                EditorGUILayout.Space(5f);
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("amountOfShootAnimations"));
-                                EndBox();
-                                BeginBox("IMPACTS");
+                                EditorGUILayout.Space(5f);
                                 EditorGUILayout.PropertyField(serializedObject.FindProperty("bulletHoleImpact"));
-                                EndBox();
+
+                                EditorGUILayout.Space(10f);
                                 break;
                         }
                         break;
@@ -609,7 +542,10 @@ namespace cowsins
         private GUIContent button;
         private void WeaponUISharedVariables(Weapon_SO myScript)
         {
-            BeginBox("USER INTERFACE (UI)");
+            EditorGUILayout.Space(20f);
+            EditorGUILayout.LabelField("User Interface (UI)", EditorStyles.boldLabel);
+            GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
+            EditorGUILayout.Space(5f);
 
             var crosshairResizeProperty = serializedObject.FindProperty("crosshairResize");
             EditorGUILayout.PropertyField(crosshairResizeProperty);
@@ -619,29 +555,32 @@ namespace cowsins
                 EditorGUILayout.LabelField("Crosshair Preset cannot be null", EditorStyles.helpBox);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("crosshairPreset"));
 
-            EndBox();   
-
         }
 
         private void WeaponAudioSharedVariables(Weapon_SO myScript)
         {
-            BeginBox("AUDIO");
+
+            EditorGUILayout.LabelField("Audio", EditorStyles.boldLabel);
+            EditorGUILayout.Space(2f);
             var audioSFXProperty = serializedObject.FindProperty("audioSFX");
             EditorGUILayout.PropertyField(audioSFXProperty);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("pitchVariationFiringSFX"));
-            EndBox();
+            EditorGUILayout.Space(10f);
         }
 
         private void WeaponShootingSharedVariables(Weapon_SO myScript)
         {
-            BeginBox("WEAPON SHOOTING SETTINGS");
+            EditorGUILayout.Space(5f);
 
             if (myScript.shootMethod != ShootingMethod.HoldUntilReady && myScript.shootMethod != ShootingMethod.HoldAndRelease)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("fireRate"), new GUIContent("Fire Delay"));
+                var fireRateProperty = serializedObject.FindProperty("fireRate");
+                EditorGUILayout.PropertyField(fireRateProperty);
                 EditorGUI.indentLevel--;
             }
+
+
 
             var bulletRangeProperty = serializedObject.FindProperty("bulletRange");
             EditorGUILayout.PropertyField(bulletRangeProperty);
@@ -659,10 +598,6 @@ namespace cowsins
             EditorGUILayout.PropertyField(serializedObject.FindProperty("ammoCostPerFire"));
             if (myScript.ammoCostPerFire > myScript.bulletsPerFire) myScript.ammoCostPerFire = myScript.bulletsPerFire;
 
-            EndBox();
-
-            BeginBox("BULLET SPREAD");
-
             var applyBulletSpreadProperty = serializedObject.FindProperty("applyBulletSpread");
             EditorGUILayout.PropertyField(applyBulletSpreadProperty);
 
@@ -679,10 +614,6 @@ namespace cowsins
                 }
             }
             if (!myScript.applyBulletSpread) myScript.spreadAmount = 0;
-
-            EndBox();
-
-            BeginBox("RECOIL");
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("applyRecoil"));
 
@@ -708,14 +639,8 @@ namespace cowsins
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.Space(5f);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.EndVertical();
-
-
             if (myScript.shootStyle != ShootStyle.Projectile)
             {
-                BeginBox("PENETRATION (WALLBANG)");
                 var penetrationAmountProperty = serializedObject.FindProperty("penetrationAmount");
                 EditorGUILayout.PropertyField(penetrationAmountProperty);
                 if (myScript.penetrationAmount != 0)
@@ -725,16 +650,16 @@ namespace cowsins
                     EditorGUILayout.PropertyField(penetrationDamageReductionProperty);
                     EditorGUI.indentLevel--;
                 }
-                EndBox();
+                EditorGUI.indentLevel--;
             }
         }
 
         private void WeaponStatsSharedVariables(Weapon_SO myScript)
         {
-            EditorGUILayout.LabelField("WEAPON STATS", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Weapon Stats", EditorStyles.boldLabel);
+            GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
             EditorGUILayout.Space(5f);
 
-            BeginBox("AMMO & MAGAZINES");
 
             if (myScript.dontShowMagazine == false)
             {
@@ -774,8 +699,6 @@ namespace cowsins
                 EditorGUI.indentLevel--;
             }
 
-            EndBox();   
-            BeginBox("DAMAGE");
             var damagePerBulletProperty = serializedObject.FindProperty("damagePerBullet");
             EditorGUILayout.PropertyField(damagePerBulletProperty);
 
@@ -792,36 +715,19 @@ namespace cowsins
                     EditorGUI.indentLevel--;
                 }
             }
-            EndBox();
-            BeginBox("RELOAD");
 
             var reloadStyleProperty = serializedObject.FindProperty("reloadStyle");
             EditorGUILayout.PropertyField(reloadStyleProperty);
 
-            Animator animator = null;
-            if (animator == null && myScript.weaponObject != null)
-            {
-                animator = myScript.weaponObject.GetComponentInChildren<Animator>();
-                if (animator != null)
-                {
-                    (bool success, float length) = CowsinsUtilities.CheckClipAvailability(animator, "reloading");
-                    if (success)
-                        EditorGUILayout.HelpBox($"Suggested Reload Time (based on the assigned reload anim length): {length}", MessageType.Info);
-                }
-            }
-
             var reloadTimeProperty = serializedObject.FindProperty("reloadTime");
             EditorGUILayout.PropertyField(reloadTimeProperty);
-
-            EndBox();   
-
-            BeginBox("AIM / ADS SETTINGS");
 
             var allowAimProperty = serializedObject.FindProperty("allowAim");
             EditorGUILayout.PropertyField(allowAimProperty);
 
             using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(myScript.allowAim)))
             {
+
                 if (group.visible == true)
                 {
                     EditorGUI.indentLevel++;
@@ -855,9 +761,6 @@ namespace cowsins
                     EditorGUI.indentLevel--;
                 }
             }
-            EndBox();
-
-            BeginBox("ITEM WEIGHT");
 
             var applyWeightProperty = serializedObject.FindProperty("applyWeight");
             EditorGUILayout.PropertyField(applyWeightProperty);
@@ -865,27 +768,30 @@ namespace cowsins
 
             using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(myScript.applyWeight)))
             {
+
                 if (group.visible == true)
                 {
+                    EditorGUI.indentLevel++;
                     var weightMultiplierProperty = serializedObject.FindProperty("weightMultiplier");
                     EditorGUILayout.PropertyField(weightMultiplierProperty);
+                    EditorGUI.indentLevel--;
                 }
             }
             if (!myScript.applyWeight) myScript.weightMultiplier = 1;
-
-            EndBox();
         }
 
         private void WeaponVisualSharedVariables(Weapon_SO myScript)
         {
-            BeginBox("GRAPPLE VISUALS");
+            EditorGUILayout.LabelField("Grapple Visuals");
+            GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
             EditorGUILayout.PropertyField(serializedObject.FindProperty("grapplesFromTip"));
-            EndBox();
-
-            BeginBox("CAMERA");
+            EditorGUILayout.Space(5f);
+            EditorGUILayout.LabelField("Camera Shake");
+            GUILayout.Box("", new GUILayoutOption[] { GUILayout.ExpandWidth(true), GUILayout.Height(8) });
             EditorGUILayout.PropertyField(serializedObject.FindProperty("camShakeAmount"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("camShakeCrouchMultiplier"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("camShakeAimMultiplier"));
+            EditorGUILayout.Space(5f);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("applyFOVEffectOnShooting"));
             if (myScript.applyFOVEffectOnShooting)
             {
@@ -897,10 +803,7 @@ namespace cowsins
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("AimingFOVValueToSubtract"));
                 EditorGUI.indentLevel--;
             }
-
-            EndBox();
-
-            BeginBox("BULLET SHELLS");
+            EditorGUILayout.Space(5f);
             var showBulletShellsProperty = serializedObject.FindProperty("showBulletShells");
             EditorGUILayout.PropertyField(showBulletShellsProperty);
 
@@ -917,14 +820,12 @@ namespace cowsins
                     EditorGUI.indentLevel--;
                 }
             }
-
             if (myScript.explosionOnHit && myScript.shootStyle == ShootStyle.Projectile)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("explosionVFX"));
                 EditorGUI.indentLevel--;
             }
-
             if (myScript.shootStyle != ShootStyle.Projectile)
             {
                 EditorGUI.indentLevel++;
@@ -937,7 +838,7 @@ namespace cowsins
             var bulletTrailProperty = serializedObject.FindProperty("bulletTrail");
             EditorGUILayout.PropertyField(bulletTrailProperty);
 
-            EndBox();
+            EditorGUILayout.Space(10f);
         }
 
         private (bool, List<string>) DetectMissingReferences(Weapon_SO script)
@@ -973,22 +874,9 @@ namespace cowsins
             return (missingReferences.Count > 0, missingReferences);
         }
 
-        private void BeginBox(string title)
-        {
-            EditorGUILayout.BeginVertical(GUI.skin.GetStyle("HelpBox"));
-            EditorGUI.indentLevel++;
-            EditorGUILayout.Space(5f);
-            if (!string.IsNullOrEmpty(title)) EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-        }
-
-        private void EndBox()
-        {
-            EditorGUILayout.Space(10f);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.EndVertical();
-        }
 
     }
+
 
     #endregion
 #endif

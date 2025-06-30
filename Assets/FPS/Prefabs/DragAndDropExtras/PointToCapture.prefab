@@ -59,24 +59,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5e2f12cda87ab24e89047a25ed737c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  uniqueID: 6d3e9ecb-bcae-49ff-9c37-542e541677ed
   events:
-    onEnter:
-      m_PersistentCalls:
-        m_Calls: []
-    onStay:
-      m_PersistentCalls:
-        m_Calls: []
-    onExit:
-      m_PersistentCalls:
-        m_Calls: []
-  rememberTriggerState: 0
-  captureEvents:
     OnCapture:
       m_PersistentCalls:
         m_Calls: []
   captureSpeed: 20
-  loseProgressIfNotCapturing: 0
+  loseProgressIfNoCapturing: 1
   losingProgressCaptureSpeed: 10
 --- !u!1 &6539790734676055352
 GameObject:

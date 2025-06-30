@@ -5,9 +5,9 @@ namespace cowsins
 {
     public class Lootbox : Interactable
     {
-        [Title("LOOTBOX", upMargin: 8),SerializeField, Min(0)] private int price;
-
         [SerializeField] private GameObject[] loot;
+
+        [SerializeField, Min(0)] private int price;
 
         [SerializeField] private float delayToReceiveLoot;
 
@@ -34,14 +34,13 @@ namespace cowsins
             if (CoinManager.Instance.CheckIfEnoughCoins(price))
                 interactText = baseInteractText + "<color=#" + ColorUtility.ToHtmlStringRGB(Color.green) + ">" + $" [{price}]" + "</color>";
             else interactText = "<color=#" + ColorUtility.ToHtmlStringRGB(Color.red) + ">" + $" [{price}]" + "</color>";
+
+
         }
         public override void Interact(Transform player)
         {
             if (price != 0 && CoinManager.Instance.useCoins && CoinManager.Instance.CheckIfEnoughCoins(price) || price == 0)
-            {
-                base.Interact(player);
                 StartCoroutine(GetLoot(player));
-            }
         }
 
         private IEnumerator GetLoot(Transform player)
@@ -75,26 +74,8 @@ namespace cowsins
 
             Vector3 spawnPosition = transform.position + spawnDirection * spawnDistance;
 
-            var instantiatedLoot = Instantiate(loot, spawnPosition, spawnRotation);
-            if (instantiatedLoot.TryGetComponent<Identifiable>(out var identifiable))
-            {
-                identifiable.GenerateUniqueID();
-#if SAVE_LOAD_ADD_ON
-                identifiable.SaveInstance();
-#endif
-            }
+            Instantiate(loot, spawnPosition, spawnRotation);
         }
-
-#if SAVE_LOAD_ADD_ON
-        // Only one possible interaction state: Open
-        public override void LoadedState()
-        {
-            anim.Play();
-            Destroy(GetComponent<Lootbox>());
-            // To avoid the InteractManager from detecting it as an Interactable
-            gameObject.layer = LayerMask.NameToLayer("Default");
-        }
-#endif
 
         private void OnDrawGizmosSelected()
         {
@@ -114,4 +95,6 @@ namespace cowsins
             Gizmos.DrawLine(transform.position, transform.position + maxDirection);
         }
     }
+
+
 }
